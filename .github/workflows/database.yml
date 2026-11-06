@@ -1,0 +1,39 @@
+name: Base de datos
+
+on:
+  push:
+    paths: ["database/**", ".github/workflows/database.yml"]
+  pull_request:
+    paths: ["database/**", ".github/workflows/database.yml"]
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: database
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: steply_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: database/package-lock.json
+      - run: npm ci
+      - run: echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/steply_test?schema=public"' > .env.test
+      - run: npm test
+      - name: El esquema y las migraciones coinciden
+        run: |
+          npx prisma migrate diff \
+            --from-url "postgresql://postgres:postgres@localhost:5432/steply_test" \
+            --to-schema-datamodel prisma/schema.prisma --exit-code

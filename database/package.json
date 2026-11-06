@@ -1,0 +1,41 @@
+{
+  "name": "@steply/database",
+  "version": "1.0.0",
+  "description": "Base de datos (PostgreSQL + Prisma) y lógica de hábitos-reto de Steply",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy && prisma generate",
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "test": "npm run test:db:prepare && npm run test:all",
+    "test:all": "node --env-file=.env.test --test --test-concurrency=1 \"test/**/*.test.js\"",
+    "test:unit": "node --test \"test/unit/*.test.js\"",
+    "test:db:prepare": "dotenv -e .env.test -- prisma migrate deploy",
+    "test:integracion": "node --env-file=.env.test --test --test-concurrency=1 \"test/integracion/*.test.js\"",
+    "prototipo": "node --env-file=.env prototipo/servidor.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "cloudinary": "^2.5.1"
+  },
+  "devDependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv-cli": "^8.0.0",
+    "express": "^4.21.2",
+    "prisma": "6.19.3"
+  }
+}
