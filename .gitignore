@@ -1,0 +1,19 @@
+# Dependencias
+node_modules/
+
+# Variables secretas
+.env
+.env.*
+!.env.example
+
+# Archivos temporales de subida
+uploads/
+tmp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
