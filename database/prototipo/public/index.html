@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steply · Prototipo de BD</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">Steply <span>prototipo de base de datos</span></div>
+    <div class="controles">
+      <label>Usuario
+        <select id="selUsuario"></select>
+      </label>
+      <label>Fecha simulada
+        <input type="date" id="fechaSimulada">
+      </label>
+      <div class="botones-fecha">
+        <button class="sec" id="btnDiaMenos" title="Un día atrás">−1 día</button>
+        <button class="sec" id="btnHoy" title="Volver a la fecha real">Hoy real</button>
+        <button id="btnDiaMas" title="Avanza un día y ejecuta el cierre automático">+1 día y cierre</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="pestanas" id="pestanas">
+    <button data-vista="inicio" class="activa">Inicio</button>
+    <button data-vista="habitos">Mis hábitos</button>
+    <button data-vista="crear">Crear reto</button>
+    <button data-vista="grupos">Grupos</button>
+    <button data-vista="revisar">Revisar <b id="contPendientes"></b></button>
+    <button data-vista="calendario">Calendario</button>
+    <button data-vista="puntos">Puntos</button>
+    <button data-vista="herramientas">Herramientas</button>
+  </nav>
+
+  <main id="vista"></main>
+  <div id="aviso" class="aviso" role="status"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

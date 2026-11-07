@@ -1,0 +1,544 @@
+// =============================================================================
+//  Steply: esquema de base de datos (PostgreSQL + Prisma)
+// -----------------------------------------------------------------------------
+//  Convenciones:
+//   * Modelos en PascalCase y campos en camelCase dentro de Prisma; en la base
+//     de datos las tablas y columnas quedan en snake_case (@map / @@map).
+//   * Identificadores UUID: no revelan cuántos registros hay y sirven en URLs
+//     (enlaces de invitación, perfiles, etc.).
+//   * Las fechas "de calendario" (día de un registro, inicio/fin de un reto) se
+//     guardan como DATE; los instantes (cuándo se hizo algo) como TIMESTAMPTZ.
+//   * Las restricciones que Prisma no puede expresar (CHECK, índices parciales,
+//     exclusión de rangos) están en la migración SQL inicial.
+//
+//  Concepto central: en Steply un hábito se forma por medio de un RETO.
+//  Un reto puede ser PERSONAL (sin grupo, solo su creador participa) o GRUPAL
+//  (pertenece a un grupo y su creador elige a los participantes).
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+//  Enumeraciones
+// -----------------------------------------------------------------------------
+
+/// Rol a nivel de plataforma (RF-20). El rol dentro de un grupo va aparte.
+enum RolGlobal {
+  USUARIO
+  ADMIN_GENERAL
+
+  @@map("rol_global")
+}
+
+enum EstadoCuenta {
+  ACTIVA
+  SUSPENDIDA
+
+  @@map("estado_cuenta")
+}
+
+enum EstadoAmistad {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+
+  @@map("estado_amistad")
+}
+
+enum RolGrupo {
+  ADMIN
+  INTEGRANTE
+
+  @@map("rol_grupo")
+}
+
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  REVOCADA
+
+  @@map("estado_invitacion")
+}
+
+enum TipoReto {
+  PERSONAL
+  GRUPAL
+
+  @@map("tipo_reto")
+}
+
+/// DIARIA: todos los días.
+/// SEMANAL: X veces por semana (lunes a domingo), cualquier día.
+/// DIAS_ESPECIFICOS: solo ciertos días de la semana (1 = lunes ... 7 = domingo).
+enum Frecuencia {
+  DIARIA
+  SEMANAL
+  DIAS_ESPECIFICOS
+
+  @@map("frecuencia")
+}
+
+enum EstadoReto {
+  ACTIVO
+  FINALIZADO
+  CANCELADO
+
+  @@map("estado_reto")
+}
+
+enum EstadoParticipante {
+  ACTIVO
+  PAUSADO
+  ABANDONADO
+  REMOVIDO
+
+  @@map("estado_participante")
+}
+
+/// Estado de revisión de un registro diario. Si el reto no requiere
+/// aprobación, todo registro nace APROBADO.
+enum EstadoRegistro {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+
+  @@map("estado_registro")
+}
+
+/// Cuándo se evalúa el castigo de un reto.
+enum PeriodoCastigo {
+  SEMANAL
+  AL_FINALIZAR
+
+  @@map("periodo_castigo")
+}
+
+enum TipoMovimiento {
+  CUMPLIMIENTO
+  INCUMPLIMIENTO
+  CASTIGO
+  BONO_RACHA
+  AJUSTE_ADMIN
+
+  @@map("tipo_movimiento")
+}
+
+enum CriterioInsignia {
+  RACHA
+  PUNTOS_TOTALES
+  RETOS_COMPLETADOS
+  RETOS_GANADOS
+
+  @@map("criterio_insignia")
+}
+
+// -----------------------------------------------------------------------------
+//  Usuarios y autenticación (RF-01, RF-02, RF-03, RN-01, RNF-03)
+// -----------------------------------------------------------------------------
+
+model Usuario {
+  id            String       @id @default(uuid()) @db.Uuid
+  nombre        String       @db.VarChar(80)
+  /// Siempre en minúsculas (CHECK en la migración) para que la unicidad no
+  /// dependa de mayúsculas: RN-01.
+  correo        String       @unique @db.VarChar(254)
+  /// Hash bcrypt (lo genera el backend). Nunca se guarda la contraseña.
+  passwordHash  String       @map("password_hash") @db.VarChar(100)
+  fotoUrl       String?      @map("foto_url") @db.VarChar(500)
+  fotoPublicId  String?      @map("foto_public_id") @db.VarChar(255)
+  descripcion   String?      @db.VarChar(500)
+  rol           RolGlobal    @default(USUARIO)
+  estado        EstadoCuenta @default(ACTIVA)
+  /// Zona horaria IANA; define qué es "hoy" para el usuario.
+  zonaHoraria   String       @default("America/Costa_Rica") @map("zona_horaria") @db.VarChar(64)
+  /// Caché del total del libro de puntos (movimientos_puntos). RNF-05.
+  puntosTotales Int          @default(0) @map("puntos_totales")
+  ultimoAcceso  DateTime?    @map("ultimo_acceso") @db.Timestamptz(3)
+  creadoEn      DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime     @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  tokensRecuperacion    TokenRecuperacion[]
+  solicitudesEnviadas   Amistad[]              @relation("SolicitudesEnviadas")
+  solicitudesRecibidas  Amistad[]              @relation("SolicitudesRecibidas")
+  gruposCreados         Grupo[]                @relation("GruposCreados")
+  membresias            MiembroGrupo[]
+  invitacionesHechas    Invitacion[]           @relation("InvitacionesHechas")
+  invitacionesRecibidas Invitacion[]           @relation("InvitacionesRecibidas")
+  retosCreados          Reto[]                 @relation("RetosCreados")
+  participaciones       ParticipanteReto[]
+  registrosRevisados    RegistroCumplimiento[] @relation("RegistrosRevisados")
+  movimientos           MovimientoPuntos[]
+  insignias             InsigniaUsuario[]
+
+  @@map("usuarios")
+}
+
+/// Token de recuperación de contraseña enviado por Gmail (RF-02 / CU-02).
+/// Se guarda el HASH del token (p. ej. SHA-256), no el token en claro.
+model TokenRecuperacion {
+  id        String    @id @default(uuid()) @db.Uuid
+  usuarioId String    @map("usuario_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(128)
+  expiraEn  DateTime  @map("expira_en") @db.Timestamptz(3)
+  usadoEn   DateTime? @map("usado_en") @db.Timestamptz(3)
+  creadoEn  DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("tokens_recuperacion")
+}
+
+// -----------------------------------------------------------------------------
+//  Amistades (RF-10, RF-11)
+// -----------------------------------------------------------------------------
+
+/// Una sola fila por pareja de usuarios, sin importar quién envió la
+/// solicitud (índice único sobre LEAST/GREATEST en la migración).
+model Amistad {
+  id            String        @id @default(uuid()) @db.Uuid
+  solicitanteId String        @map("solicitante_id") @db.Uuid
+  receptorId    String        @map("receptor_id") @db.Uuid
+  estado        EstadoAmistad @default(PENDIENTE)
+  creadoEn      DateTime      @default(now()) @map("creado_en") @db.Timestamptz(3)
+  respondidoEn  DateTime?     @map("respondido_en") @db.Timestamptz(3)
+
+  solicitante Usuario @relation("SolicitudesEnviadas", fields: [solicitanteId], references: [id], onDelete: Cascade)
+  receptor    Usuario @relation("SolicitudesRecibidas", fields: [receptorId], references: [id], onDelete: Cascade)
+
+  @@unique([solicitanteId, receptorId])
+  @@index([receptorId, estado])
+  @@map("amistades")
+}
+
+// -----------------------------------------------------------------------------
+//  Grupos privados (RF-12, RF-19, RF-20, RN-03)
+// -----------------------------------------------------------------------------
+
+model Grupo {
+  id                   String   @id @default(uuid()) @db.Uuid
+  nombre               String   @db.VarChar(80)
+  descripcion          String?  @db.VarChar(500)
+  fotoUrl              String?  @map("foto_url") @db.VarChar(500)
+  /// Si el creador elimina su cuenta, el grupo sigue existiendo.
+  creadorId            String?  @map("creador_id") @db.Uuid
+  /// Código del enlace de invitación (RN-03). Se puede regenerar para revocarlo.
+  codigoInvitacion     String   @unique @map("codigo_invitacion") @db.VarChar(32)
+  /// Si es true, solo los administradores del grupo pueden crear retos.
+  /// Si es false, cualquier integrante puede ponerle retos a los demás.
+  soloAdminsCreanRetos Boolean  @default(false) @map("solo_admins_crean_retos")
+  creadoEn             DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn        DateTime @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  creador      Usuario?           @relation("GruposCreados", fields: [creadorId], references: [id], onDelete: SetNull)
+  miembros     MiembroGrupo[]
+  invitaciones Invitacion[]
+  retos        Reto[]
+  movimientos  MovimientoPuntos[]
+
+  @@map("grupos")
+}
+
+model MiembroGrupo {
+  grupoId   String   @map("grupo_id") @db.Uuid
+  usuarioId String   @map("usuario_id") @db.Uuid
+  rol       RolGrupo @default(INTEGRANTE)
+  unidoEn   DateTime @default(now()) @map("unido_en") @db.Timestamptz(3)
+
+  grupo   Grupo   @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([grupoId, usuarioId])
+  @@index([usuarioId])
+  @@map("miembros_grupo")
+}
+
+/// Invitación directa a un usuario (notificación). Para el enlace abierto se
+/// usa Grupo.codigoInvitacion.
+model Invitacion {
+  id           String           @id @default(uuid()) @db.Uuid
+  grupoId      String           @map("grupo_id") @db.Uuid
+  invitadorId  String           @map("invitador_id") @db.Uuid
+  invitadoId   String           @map("invitado_id") @db.Uuid
+  estado       EstadoInvitacion @default(PENDIENTE)
+  expiraEn     DateTime?        @map("expira_en") @db.Timestamptz(3)
+  creadoEn     DateTime         @default(now()) @map("creado_en") @db.Timestamptz(3)
+  respondidoEn DateTime?        @map("respondido_en") @db.Timestamptz(3)
+
+  grupo     Grupo   @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  invitador Usuario @relation("InvitacionesHechas", fields: [invitadorId], references: [id], onDelete: Cascade)
+  invitado  Usuario @relation("InvitacionesRecibidas", fields: [invitadoId], references: [id], onDelete: Cascade)
+
+  @@index([invitadoId, estado])
+  @@index([grupoId])
+  @@map("invitaciones")
+}
+
+// -----------------------------------------------------------------------------
+//  Hábitos-reto (RF-04, RF-05, RF-13, RF-16, RF-19)
+// -----------------------------------------------------------------------------
+
+model Reto {
+  id          String   @id @default(uuid()) @db.Uuid
+  tipo        TipoReto
+  /// Obligatorio si tipo = GRUPAL y nulo si es PERSONAL (CHECK).
+  grupoId     String?  @map("grupo_id") @db.Uuid
+  creadorId   String   @map("creador_id") @db.Uuid
+  nombre      String   @db.VarChar(80)
+  descripcion String?  @db.VarChar(1000)
+  /// Meta en texto libre, p. ej. "Leer 20 páginas" o "8 vasos de agua".
+  meta        String?  @db.VarChar(200)
+
+  // --- Frecuencia (personalizable) ---
+  frecuencia     Frecuencia
+  /// Solo para SEMANAL: cuántas veces por semana (1 a 7).
+  vecesPorSemana Int?       @map("veces_por_semana") @db.SmallInt
+  /// Solo para DIAS_ESPECIFICOS: días ISO (1 = lunes ... 7 = domingo).
+  diasSemana     Int[]      @default([]) @map("dias_semana") @db.SmallInt
+
+  // --- Duración ---
+  fechaInicio DateTime  @map("fecha_inicio") @db.Date
+  /// Nulo = reto sin fecha de fin (hábito permanente).
+  fechaFin    DateTime? @map("fecha_fin") @db.Date
+
+  // --- Puntos (definidos por quien crea el reto) ---
+  puntosPorCumplimiento   Int  @default(10) @map("puntos_por_cumplimiento")
+  /// Se RESTAN por cada día programado incumplido ("No lo completé" o sin registro).
+  puntosPorIncumplimiento Int  @default(0) @map("puntos_por_incumplimiento")
+  /// Bono opcional: cada N unidades de racha se suman bonoRachaPuntos.
+  bonoRachaCada           Int? @map("bono_racha_cada")
+  bonoRachaPuntos         Int  @default(0) @map("bono_racha_puntos")
+
+  // --- Evidencias (RF-14) ---
+  requiereEvidencia  Boolean @default(false) @map("requiere_evidencia")
+  /// Toggle: si está activo, el admin del grupo o el creador del reto deben
+  /// aprobar cada cumplimiento antes de que sume puntos y racha.
+  requiereAprobacion Boolean @default(false) @map("requiere_aprobacion")
+
+  // --- Reglas de registro ---
+  /// Días hacia atrás en que todavía se puede registrar (0 = solo hoy).
+  diasGraciaRegistro           Int     @default(0) @map("dias_gracia_registro") @db.SmallInt
+  /// % de días programados que hay que cumplir para no recibir castigo y para
+  /// que el reto cuente como completado.
+  porcentajeMinimoCumplimiento Int     @default(100) @map("porcentaje_minimo_cumplimiento") @db.SmallInt
+  /// RF-19: si los participantes pueden abandonar el reto.
+  permiteAbandono              Boolean @default(true) @map("permite_abandono")
+
+  // --- Castigo personalizable (RF-16) ---
+  castigoDescripcion String?         @map("castigo_descripcion") @db.VarChar(500)
+  castigoPuntos      Int             @default(0) @map("castigo_puntos")
+  /// Nulo = el reto no tiene castigo.
+  castigoPeriodo     PeriodoCastigo? @map("castigo_periodo")
+
+  estado        EstadoReto @default(ACTIVO)
+  finalizadoEn  DateTime?  @map("finalizado_en") @db.Timestamptz(3)
+  creadoEn      DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime   @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  grupo         Grupo?             @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  creador       Usuario            @relation("RetosCreados", fields: [creadorId], references: [id], onDelete: Cascade)
+  participantes ParticipanteReto[]
+  movimientos   MovimientoPuntos[]
+  insignias     InsigniaUsuario[]
+
+  @@index([grupoId, estado])
+  @@index([creadorId])
+  @@index([estado, fechaFin])
+  @@map("retos")
+}
+
+/// Un usuario dentro de un reto. Guarda en caché los puntos y la racha del
+/// usuario en ese reto (tabla de posiciones, RF-15).
+model ParticipanteReto {
+  id                 String             @id @default(uuid()) @db.Uuid
+  retoId             String             @map("reto_id") @db.Uuid
+  usuarioId          String             @map("usuario_id") @db.Uuid
+  estado             EstadoParticipante @default(ACTIVO)
+  /// Día (en la zona del usuario) desde el que se le exige el reto.
+  fechaIngreso       DateTime           @map("fecha_ingreso") @db.Date
+  puntos             Int                @default(0)
+  rachaActual        Int                @default(0) @map("racha_actual")
+  mejorRacha         Int                @default(0) @map("mejor_racha")
+  ultimoCumplimiento DateTime?          @map("ultimo_cumplimiento") @db.Date
+  /// Al finalizar el reto: si alcanzó el porcentaje mínimo y en qué lugar quedó.
+  completado         Boolean?
+  posicionFinal      Int?               @map("posicion_final")
+  unidoEn            DateTime           @default(now()) @map("unido_en") @db.Timestamptz(3)
+  salidaEn           DateTime?          @map("salida_en") @db.Timestamptz(3)
+
+  reto        Reto                   @relation(fields: [retoId], references: [id], onDelete: Cascade)
+  usuario     Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  pausas      Pausa[]
+  registros   RegistroCumplimiento[]
+  movimientos MovimientoPuntos[]
+  castigos    CastigoAplicado[]
+
+  @@unique([retoId, usuarioId])
+  @@index([usuarioId, estado])
+  @@index([retoId, puntos(sort: Desc)])
+  @@map("participantes_reto")
+}
+
+/// Pausa por causa mayor (RN-02): congela la racha y no penaliza. Los días
+/// son inclusivos y fechaFin nula = pausa vigente. Las pausas de un mismo
+/// participante no se pueden traslapar (restricción EXCLUDE).
+model Pausa {
+  id             String    @id @default(uuid()) @db.Uuid
+  participanteId String    @map("participante_id") @db.Uuid
+  fechaInicio    DateTime  @map("fecha_inicio") @db.Date
+  fechaFin       DateTime? @map("fecha_fin") @db.Date
+  motivo         String?   @db.VarChar(300)
+  creadoEn       DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  participante ParticipanteReto @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+
+  @@index([participanteId])
+  @@map("pausas")
+}
+
+// -----------------------------------------------------------------------------
+//  Registro diario y evidencias (RF-06, RF-07, RF-14, RN-04)
+// -----------------------------------------------------------------------------
+
+/// Un registro por participante y día. Para frecuencia SEMANAL, cada día en
+/// que se cumplió cuenta como una vez.
+model RegistroCumplimiento {
+  id             String         @id @default(uuid()) @db.Uuid
+  participanteId String         @map("participante_id") @db.Uuid
+  fecha          DateTime       @db.Date
+  cumplido       Boolean
+  estado         EstadoRegistro @default(APROBADO)
+  /// true si lo generó el cierre diario porque el usuario no registró nada.
+  automatico     Boolean        @default(false)
+  nota           String?        @db.VarChar(500)
+  registradoEn   DateTime       @default(now()) @map("registrado_en") @db.Timestamptz(3)
+  revisadoPorId  String?        @map("revisado_por_id") @db.Uuid
+  revisadoEn     DateTime?      @map("revisado_en") @db.Timestamptz(3)
+  motivoRechazo  String?        @map("motivo_rechazo") @db.VarChar(300)
+
+  participante ParticipanteReto   @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+  revisadoPor  Usuario?           @relation("RegistrosRevisados", fields: [revisadoPorId], references: [id], onDelete: SetNull)
+  evidencias   Evidencia[]
+  movimientos  MovimientoPuntos[]
+
+  @@unique([participanteId, fecha])
+  @@index([estado])
+  @@map("registros_cumplimiento")
+}
+
+/// Foto u otro archivo guardado en Cloudinary. En la base solo se guarda la
+/// URL y el public_id (para poder borrarlo de Cloudinary).
+model Evidencia {
+  id         String   @id @default(uuid()) @db.Uuid
+  registroId String   @map("registro_id") @db.Uuid
+  url        String   @db.VarChar(500)
+  publicId   String   @unique @map("public_id") @db.VarChar(255)
+  formato    String   @db.VarChar(10)
+  bytes      Int
+  ancho      Int?
+  alto       Int?
+  subidaEn   DateTime @default(now()) @map("subida_en") @db.Timestamptz(3)
+
+  registro RegistroCumplimiento @relation(fields: [registroId], references: [id], onDelete: Cascade)
+
+  @@index([registroId])
+  @@map("evidencias")
+}
+
+// -----------------------------------------------------------------------------
+//  Gamificación (RF-15, RF-16, RF-18)
+// -----------------------------------------------------------------------------
+
+/// Libro contable de puntos: cada suma o resta queda registrada con su motivo.
+/// Usuario.puntosTotales y ParticipanteReto.puntos son cachés de esta tabla.
+model MovimientoPuntos {
+  id             String         @id @default(uuid()) @db.Uuid
+  usuarioId      String         @map("usuario_id") @db.Uuid
+  participanteId String?        @map("participante_id") @db.Uuid
+  retoId         String?        @map("reto_id") @db.Uuid
+  /// Copia del grupo del reto para armar el ranking del grupo rápidamente.
+  grupoId        String?        @map("grupo_id") @db.Uuid
+  registroId     String?        @map("registro_id") @db.Uuid
+  tipo           TipoMovimiento
+  /// Positivo suma, negativo resta. Nunca 0 (CHECK).
+  puntos         Int
+  descripcion    String         @db.VarChar(500)
+  /// Clave de idempotencia por participante (p. ej. "castigo:2026-11-02") para
+  /// que los procesos automáticos no apliquen dos veces lo mismo.
+  clave          String?        @db.VarChar(100)
+  creadoEn       DateTime       @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  usuario      Usuario               @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  participante ParticipanteReto?     @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+  reto         Reto?                 @relation(fields: [retoId], references: [id], onDelete: Cascade)
+  grupo        Grupo?                @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  registro     RegistroCumplimiento? @relation(fields: [registroId], references: [id], onDelete: Cascade)
+
+  @@unique([participanteId, clave])
+  @@index([usuarioId, creadoEn])
+  @@index([grupoId, usuarioId])
+  @@index([registroId])
+  @@map("movimientos_puntos")
+}
+
+/// Castigo aplicado a un participante que no alcanzó la meta de un periodo
+/// (una semana o el reto completo). Se guarda aunque el castigo no reste
+/// puntos (p. ej. "invita el café"), para mostrarlo en el grupo.
+model CastigoAplicado {
+  id             String         @id @default(uuid()) @db.Uuid
+  participanteId String         @map("participante_id") @db.Uuid
+  periodo        PeriodoCastigo
+  periodoInicio  DateTime       @map("periodo_inicio") @db.Date
+  periodoFin     DateTime       @map("periodo_fin") @db.Date
+  requeridos     Int
+  cumplidos      Int
+  descripcion    String?        @db.VarChar(500)
+  puntos         Int            @default(0)
+  /// El grupo puede marcar que la persona ya "pagó" el castigo.
+  saldado        Boolean        @default(false)
+  creadoEn       DateTime       @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  participante ParticipanteReto @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+
+  @@unique([participanteId, periodo, periodoInicio])
+  @@map("castigos_aplicados")
+}
+
+model Insignia {
+  id          String           @id @default(uuid()) @db.Uuid
+  codigo      String           @unique @db.VarChar(50)
+  nombre      String           @db.VarChar(80)
+  descripcion String           @db.VarChar(300)
+  iconoUrl    String?          @map("icono_url") @db.VarChar(500)
+  criterio    CriterioInsignia
+  /// Valor a alcanzar según el criterio (días de racha, puntos, retos...).
+  umbral      Int
+
+  usuarios InsigniaUsuario[]
+
+  @@unique([criterio, umbral])
+  @@map("insignias")
+}
+
+model InsigniaUsuario {
+  usuarioId  String   @map("usuario_id") @db.Uuid
+  insigniaId String   @map("insignia_id") @db.Uuid
+  /// Reto con el que se desbloqueó (si aplica).
+  retoId     String?  @map("reto_id") @db.Uuid
+  obtenidaEn DateTime @default(now()) @map("obtenida_en") @db.Timestamptz(3)
+
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  insignia Insignia @relation(fields: [insigniaId], references: [id], onDelete: Cascade)
+  reto     Reto?    @relation(fields: [retoId], references: [id], onDelete: SetNull)
+
+  @@id([usuarioId, insigniaId])
+  @@map("insignias_usuario")
+}

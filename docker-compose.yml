@@ -1,0 +1,23 @@
+# PostgreSQL local para desarrollo y pruebas.
+#   docker compose up -d
+# Crea las bases "steply" (desarrollo) y "steply_test" (pruebas).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: steply-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: steply
+    ports:
+      - "5432:5432"
+    volumes:
+      - steply-datos:/var/lib/postgresql/data
+      - ./database/docker/crear-bd-pruebas.sql:/docker-entrypoint-initdb.d/01-crear-bd-pruebas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  steply-datos:

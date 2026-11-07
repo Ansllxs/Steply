@@ -5,7 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
-
+database/node_modules/
 # Archivos temporales de subida
 uploads/
 tmp/
@@ -17,3 +17,6 @@ npm-debug.log*
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+.env.test
+.env.local
+coverage/
