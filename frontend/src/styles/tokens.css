@@ -1,0 +1,30 @@
+/*
+  Mobile first. Base styles target 375px and 390px.
+  Tablet: min-width 768px. Desktop: min-width 1440px.
+  Use these tokens for spacing, type, and touch targets on every screen.
+*/
+:root {
+  --color-background: #FCF7F0;
+  --color-white: #FFFFFF;
+  --color-primary: #6344A4;
+  --color-dark: #251442;
+  --color-soft: #ECE3F7;
+  --color-secondary-text: #62536E;
+
+  --font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.5rem, 1.15rem + 1.4vw, 2.25rem);
+
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  --radius: 0.75rem;
+  --touch-target: 2.75rem;
+  --header-height: 3.5rem;
+  --bottom-nav-height: 4.25rem;
+  --content-max: 72rem;
+}
