@@ -6,7 +6,7 @@ import profileIcon from '../assets/nav-profile.svg'
 
 const items = [
   { label: 'Inicio', icon: homeIcon, to: '/dashboard' },
-  { label: 'Hábitos', icon: habitsIcon },
+  { label: 'Hábitos', icon: habitsIcon, to: '/habits' },
   { label: 'Grupos', icon: groupsIcon },
   { label: 'Perfil', icon: profileIcon },
 ]
@@ -29,7 +29,7 @@ export default function BottomNav() {
             <NavLink
               key={item.label}
               to={item.to}
-              end
+              end={item.to === '/dashboard' || item.to === '/habits'}
               className={({ isActive }) =>
                 isActive ? 'bottom-nav-item is-active' : 'bottom-nav-item'
               }

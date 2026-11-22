@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="cap">
+<path id="Board" d="M1.75 8.15L10 4.55L18.25 8.15L10 11.75L1.75 8.15Z" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" stroke="#6344A4"/>
+<path id="Base" d="M5.1 9.55V13.05C5.1 13.05 7.05 15.15 10 15.15C12.95 15.15 14.9 13.05 14.9 13.05V9.55" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" stroke="#6344A4"/>
+<path id="Tassel" d="M18.25 8.15V12.15" stroke-width="1.75" stroke-linecap="round" stroke="#6344A4"/>
+</g>
+</svg>

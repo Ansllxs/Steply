@@ -1,0 +1,131 @@
+.habit-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.habit-filter,
+.type-option {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+  background: var(--color-white);
+  color: var(--color-dark);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.habit-filter:hover,
+.type-option:hover {
+  background: var(--color-white);
+  color: var(--color-dark);
+}
+
+.habit-filter.is-selected,
+.type-option.is-selected {
+  border-color: transparent;
+  background: var(--color-soft);
+  color: var(--color-purple);
+}
+
+.habit-filter.is-selected:hover,
+.type-option.is-selected:hover {
+  background: var(--color-soft);
+  color: var(--color-purple);
+}
+
+.habits-page .habit-list {
+  margin-top: 20px;
+}
+
+.habits-page .dashboard-actions {
+  margin-top: 85px;
+}
+
+.create-habit {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: var(--color-background);
+}
+
+.create-habit-frame {
+  width: min(100%, 390px);
+  box-sizing: border-box;
+  padding: 43px 24px calc(32px + env(safe-area-inset-bottom));
+}
+
+.create-habit h1 {
+  margin: 5px 0 0;
+  color: var(--color-dark);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: 0;
+}
+
+.create-habit .dashboard-kicker {
+  margin-top: 22px;
+}
+
+.create-habit-art {
+  height: 126px;
+  margin-top: 8px;
+  border-radius: 22px;
+  background: var(--color-soft);
+}
+
+.create-habit-form .field:first-child {
+  margin-top: 22px;
+}
+
+.create-habit-form .type-field,
+.create-habit-form .field + .field {
+  margin-top: 16px;
+}
+
+.create-habit-form .type-field + .field {
+  margin-top: 12px;
+}
+
+.type-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.type-field legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--color-dark);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0;
+}
+
+.type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.type-option {
+  width: 100%;
+  min-height: 44px;
+}
+
+.create-habit-actions {
+  margin-top: 33px;
+}
+
+.create-habit-actions .auth-notice {
+  margin-top: 16px;
+}

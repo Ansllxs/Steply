@@ -1,9 +1,11 @@
 import bookIcon from '../assets/icon-book.svg'
+import capIcon from '../assets/icon-cap.svg'
 import dropIcon from '../assets/icon-drop.svg'
 import nextIcon from '../assets/icon-next.svg'
 
 const icons = {
   book: bookIcon,
+  cap: capIcon,
   drop: dropIcon,
 }
 
