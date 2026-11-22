@@ -36,3 +36,14 @@
 .btn-secondary:hover {
   color: var(--color-purple);
 }
+
+.btn-outline {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-purple);
+}
+
+.btn-outline:hover {
+  background: var(--color-white);
+  color: var(--color-purple);
+}
