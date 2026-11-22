@@ -12,6 +12,7 @@
   --color-secondary-text: #62536E;
   --color-pink: #F8DCE8;
   --color-purple: #4E2D88;
+  --color-border: #E7DBE9;
 
   --font-sans: Inter, system-ui, "Segoe UI", Roboto, sans-serif;
   --text-sm: 0.875rem;
@@ -26,7 +27,4 @@
 
   --radius: 0.75rem;
   --touch-target: 2.75rem;
-  --header-height: 3.5rem;
-  --bottom-nav-height: 4.25rem;
-  --content-max: 72rem;
 }

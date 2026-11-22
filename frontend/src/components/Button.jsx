@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export default function Button({ to, variant = 'primary', children }) {
+export default function Button({ to, variant = 'primary', type = 'button', children }) {
   const className = `btn btn-${variant}`
 
   if (to) {
@@ -12,7 +12,7 @@ export default function Button({ to, variant = 'primary', children }) {
   }
 
   return (
-    <button type="button" className={className}>
+    <button type={type} className={className}>
       {children}
     </button>
   )
