@@ -55,6 +55,7 @@ export default function CreateHabitPage() {
         <h1>Crear hábito</h1>
         <p className="dashboard-stats">Define un hábito personal o grupal.</p>
         <div className="create-habit-art" />
+        <div className="create-habit-bunny" aria-hidden="true" />
         <form className="create-habit-form" onSubmit={handleSubmit} noValidate>
           <TextField
             id="habit-name"

@@ -41,7 +41,7 @@ export default function DashboardPage() {
         <div className="dashboard-actions">
           <Button to="/habits" variant="secondary">Ver todos mis hábitos</Button>
           <Button to="/habits/new">Crear hábito</Button>
-          <Button variant="outline">Ver calendario</Button>
+          <Button to="/calendar" variant="outline">Ver calendario</Button>
         </div>
       </div>
       <BottomNav />

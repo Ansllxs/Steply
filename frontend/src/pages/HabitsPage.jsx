@@ -39,7 +39,7 @@ export default function HabitsPage() {
         </ul>
         <div className="dashboard-actions">
           <Button to="/habits/new">Crear hábito</Button>
-          <Button variant="secondary">Ver calendario</Button>
+          <Button to="/calendar" variant="secondary">Ver calendario</Button>
         </div>
       </div>
       <BottomNav />

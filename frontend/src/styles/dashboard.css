@@ -138,7 +138,8 @@
   background: var(--color-white);
   color: inherit;
   text-align: left;
-  cursor: default;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .habit-card:hover {

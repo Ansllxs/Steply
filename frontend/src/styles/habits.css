@@ -56,6 +56,7 @@
 }
 
 .create-habit-frame {
+  position: relative;
   width: min(100%, 390px);
   box-sizing: border-box;
   padding: 43px 24px calc(32px + env(safe-area-inset-bottom));
@@ -79,6 +80,16 @@
   margin-top: 8px;
   border-radius: 22px;
   background: var(--color-soft);
+}
+
+.create-habit-bunny {
+  position: absolute;
+  width: 188px;
+  height: 108px;
+  left: calc(50% - 94px);
+  top: 206px;
+  background: url('../assets/laptop-bunny.png') center / contain no-repeat;
+  pointer-events: none;
 }
 
 .create-habit-form .field:first-child {

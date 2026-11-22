@@ -11,7 +11,7 @@ const items = [
   { label: 'Perfil', icon: profileIcon },
 ]
 
-export default function BottomNav() {
+export default function BottomNav({ current }) {
   return (
     <nav className="bottom-nav" aria-label="Principal">
       {items.map((item) => {
@@ -31,7 +31,9 @@ export default function BottomNav() {
               to={item.to}
               end={item.to === '/dashboard' || item.to === '/habits'}
               className={({ isActive }) =>
-                isActive ? 'bottom-nav-item is-active' : 'bottom-nav-item'
+                (current ? current === item.label : isActive)
+                  ? 'bottom-nav-item is-active'
+                  : 'bottom-nav-item'
               }
             >
               {content}
