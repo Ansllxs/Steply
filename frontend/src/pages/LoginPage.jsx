@@ -1,20 +1,28 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import logo from '../assets/logo.png'
+import AuthSuccess from '../components/AuthSuccess'
 import Button from '../components/Button'
+import LoadingIndicator from '../components/LoadingIndicator'
 import TextField from '../components/TextField'
+import { USERNAME_PATTERN } from '../data/profile'
+import { describeApiError } from '../services/auth-errors'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function validateLogin(email, password) {
+function validateLogin(identifier, password) {
   const errors = {}
+  const value = identifier.trim()
 
-  if (!email.trim()) {
-    errors.email = 'validation.emailRequired'
-  } else if (!emailPattern.test(email.trim())) {
-    errors.email = 'validation.emailInvalid'
+  if (!value) {
+    errors.identifier = 'validation.identifierRequired'
+  } else if (value.includes('@')) {
+    if (!emailPattern.test(value)) errors.identifier = 'validation.emailInvalid'
+  } else if (/\s/.test(identifier) || !USERNAME_PATTERN.test(value)) {
+    errors.identifier = 'validation.usernameCharset'
   }
 
   if (!password) {
@@ -24,24 +32,51 @@ function validateLogin(email, password) {
   return errors
 }
 
+function successDelay() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, reduce ? 600 : 1100)
+  })
+}
+
 export default function LoginPage() {
   const { t } = usePreferences()
-  const [email, setEmail] = useState('')
+  const { login, finishTransition } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    const nextErrors = validateLogin(email, password)
+    if (submitting) return
+
+    const nextErrors = validateLogin(identifier, password)
     setErrors(nextErrors)
+    setNotice('')
 
-    if (Object.keys(nextErrors).length > 0) {
-      setNotice('')
-      return
+    if (Object.keys(nextErrors).length > 0) return
+
+    setSubmitting(true)
+
+    try {
+      await login({ identificador: identifier.trim(), password })
+      setSuccess(true)
+      await successDelay()
+      finishTransition()
+      const from = location.state?.from?.pathname
+      const destination = from && from !== '/login' && from !== '/register' ? from : '/dashboard'
+      navigate(destination, { replace: true })
+    } catch (error) {
+      const result = describeApiError(error)
+      setErrors(result.fields)
+      setNotice(result.form)
+      setSubmitting(false)
     }
-
-    setNotice('login.notice')
   }
 
   return (
@@ -59,49 +94,55 @@ export default function LoginPage() {
         />
         <h1>{t('login.hello')}</h1>
         <p className="auth-lead">{t('login.lead')}</p>
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <TextField
-            id="login-email"
-            name="email"
-            label={t('login.email')}
-            type="email"
-            value={email}
-            placeholder="angie@ejemplo.com"
-            autoComplete="email"
-            error={errors.email ? t(errors.email) : undefined}
-            onChange={(event) => {
-              setEmail(event.target.value)
-              setNotice('')
-              setErrors((current) => ({ ...current, email: undefined }))
-            }}
-          />
-          <TextField
-            id="login-password"
-            name="password"
-            label={t('login.password')}
-            type="password"
-            value={password}
-            placeholder="••••••••"
-            autoComplete="current-password"
-            error={errors.password ? t(errors.password) : undefined}
-            onChange={(event) => {
-              setPassword(event.target.value)
-              setNotice('')
-              setErrors((current) => ({ ...current, password: undefined }))
-            }}
-          />
-          <div className="auth-actions">
-            <Button type="submit">{t('login.submit')}</Button>
-            {notice ? (
-              <p className="auth-notice" role="status">
-                {t(notice)}
-              </p>
-            ) : null}
-            <Button to="/register" variant="secondary">
-              {t('login.create')}
-            </Button>
-          </div>
-        </form>
+        {success ? (
+          <AuthSuccess message={t('auth.welcomeBack')} />
+        ) : (
+          <form className="auth-form" onSubmit={handleSubmit} noValidate aria-busy={submitting}>
+            <TextField
+              id="login-identifier"
+              name="username"
+              label={t('login.identifier')}
+              type="text"
+              value={identifier}
+              placeholder={t('login.identifierPlaceholder')}
+              autoComplete="username"
+              error={errors.identifier ? t(errors.identifier) : undefined}
+              onChange={(event) => {
+                setIdentifier(event.target.value)
+                setNotice('')
+                setErrors((current) => ({ ...current, identifier: undefined }))
+              }}
+            />
+            <TextField
+              id="login-password"
+              name="password"
+              label={t('login.password')}
+              type="password"
+              value={password}
+              placeholder={t('register.passwordPlaceholder')}
+              autoComplete="current-password"
+              revealable
+              error={errors.password ? t(errors.password) : undefined}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                setNotice('')
+                setErrors((current) => ({ ...current, password: undefined }))
+              }}
+            />
+            <div className="auth-actions">
+              <Button type="submit" disabled={submitting}>{t('login.submit')}</Button>
+              {submitting ? <LoadingIndicator message={t('auth.working')} /> : null}
+              {notice ? (
+                <p className="auth-notice" role="alert">
+                  {t(notice)}
+                </p>
+              ) : null}
+              <Button to="/register" variant="secondary">
+                {t('login.create')}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   )

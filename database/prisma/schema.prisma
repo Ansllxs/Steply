@@ -150,6 +150,8 @@ model Usuario {
   /// Siempre en minúsculas (CHECK en la migración) para que la unicidad no
   /// dependa de mayúsculas: RN-01.
   correo        String       @unique @db.VarChar(254)
+  /// Siempre en minúsculas. Único aunque cambien las mayúsculas.
+  nombreUsuario String       @unique @map("nombre_usuario") @db.VarChar(30)
   /// Hash bcrypt (lo genera el backend). Nunca se guarda la contraseña.
   passwordHash  String       @map("password_hash") @db.VarChar(100)
   fotoUrl       String?      @map("foto_url") @db.VarChar(500)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import flameIcon from '../assets/icon-flame.svg'
 import imageIcon from '../assets/icon-image.svg'
 import logoutIcon from '../assets/icon-logout.svg'
@@ -18,21 +18,23 @@ import {
   profilePhotoTypes,
 } from '../data/profile'
 import { translatePhrase } from '../i18n/phrases'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 import { useProfile } from '../state/useProfile'
 import { loadImage } from '../utils/cropImage'
 
 export default function ProfilePage() {
   const { language, t } = usePreferences()
+  const { user, logout } = useAuth()
   const { profile, photoUrl, updatePhoto } = useProfile()
   const location = useLocation()
+  const navigate = useNavigate()
   const pendingUrlRef = useRef('')
   const [pendingUrl, setPendingUrl] = useState('')
   const [photoError, setPhotoError] = useState('')
   const [photoToast, setPhotoToast] = useState(0)
   const [toastVisible, setToastVisible] = useState(false)
   const [photoLoading, setPhotoLoading] = useState(false)
-  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     return () => {
@@ -61,13 +63,11 @@ export default function ProfilePage() {
 
     if (!profilePhotoTypes.includes(file.type)) {
       setPhotoError('profile.photoType')
-      setPhotoNotice('')
       return
     }
 
     if (file.size > maxProfilePhotoBytes) {
       setPhotoError('profile.photoSize')
-      setPhotoNotice('')
       return
     }
 
@@ -122,8 +122,9 @@ export default function ProfilePage() {
             </label>
           </div>
           <div>
-            <h1>{profile.name}</h1>
-            <p className="profile-handle">@{profile.username}</p>
+            <h1>{user.nombre}</h1>
+            <p className="profile-handle">@{user.nombreUsuario}</p>
+            <p className="profile-handle">{user.correo}</p>
           </div>
         </section>
         {location.state?.savedLocally ? (
@@ -170,13 +171,6 @@ export default function ProfilePage() {
               key={action.id}
               habit={action}
               to={action.to ?? null}
-              onClick={
-                action.notice
-                  ? () => {
-                      setNotice(action.notice)
-                    }
-                  : undefined
-              }
             />
           ))}
         </ul>
@@ -184,13 +178,13 @@ export default function ProfilePage() {
           <Button
             variant="secondary"
             onClick={() => {
-              setNotice('profile.logoutNotice')
+              logout()
+              navigate('/login', { replace: true })
             }}
           >
             <img src={logoutIcon} alt="" width="18" height="18" />
             {t('profile.logout')}
           </Button>
-          <AnimatedToast message={notice ? t(notice) : ''} />
         </div>
       </div>
       <BottomNav />

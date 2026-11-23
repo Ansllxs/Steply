@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import { RedirectIfAuthenticated, RequireAuth } from './components/RouteGuards'
 import CalendarPage from './pages/CalendarPage'
 import CheckInPage from './pages/CheckInPage'
 import CreateHabitPage from './pages/CreateHabitPage'
@@ -21,22 +22,22 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/habits" element={<HabitsPage />} />
-      <Route path="/habits/new" element={<CreateHabitPage />} />
-      <Route path="/habits/:id/check-in" element={<CheckInPage />} />
-      <Route path="/habits/:id" element={<HabitDetailPage />} />
-      <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/groups" element={<GroupsPage />} />
-      <Route path="/groups/new" element={<CreateGroupPage />} />
-      <Route path="/groups/:id/ranking" element={<GroupRankingPage />} />
-      <Route path="/groups/:id/manage" element={<ManageGroupHabitsPage />} />
-      <Route path="/groups/:id" element={<GroupDetailPage />} />
-      <Route path="/profile/edit" element={<EditProfilePage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
+      <Route path="/register" element={<RedirectIfAuthenticated><RegisterPage /></RedirectIfAuthenticated>} />
+      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+      <Route path="/habits" element={<RequireAuth><HabitsPage /></RequireAuth>} />
+      <Route path="/habits/new" element={<RequireAuth><CreateHabitPage /></RequireAuth>} />
+      <Route path="/habits/:id/check-in" element={<RequireAuth><CheckInPage /></RequireAuth>} />
+      <Route path="/habits/:id" element={<RequireAuth><HabitDetailPage /></RequireAuth>} />
+      <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
+      <Route path="/groups" element={<RequireAuth><GroupsPage /></RequireAuth>} />
+      <Route path="/groups/new" element={<RequireAuth><CreateGroupPage /></RequireAuth>} />
+      <Route path="/groups/:id/ranking" element={<RequireAuth><GroupRankingPage /></RequireAuth>} />
+      <Route path="/groups/:id/manage" element={<RequireAuth><ManageGroupHabitsPage /></RequireAuth>} />
+      <Route path="/groups/:id" element={<RequireAuth><GroupDetailPage /></RequireAuth>} />
+      <Route path="/profile/edit" element={<RequireAuth><EditProfilePage /></RequireAuth>} />
+      <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+      <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
     </Routes>
   )
 }

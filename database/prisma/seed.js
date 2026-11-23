@@ -44,7 +44,15 @@ async function sembrarDemo() {
   }
   const passwordHash = await bcrypt.hash('Steply123!', 10);
   const crear = (nombre, correo, extra = {}) =>
-    prisma.usuario.create({ data: { nombre, correo, passwordHash, ...extra } });
+    prisma.usuario.create({
+      data: {
+        nombre,
+        correo,
+        nombreUsuario: correo.split('@')[0],
+        passwordHash,
+        ...extra,
+      },
+    });
 
   await crear('Admin Steply', 'admin@steply.app', { rol: 'ADMIN_GENERAL' });
   const angie = await crear('Angie', 'angie@ejemplo.com', { descripcion: 'Leyendo un libro por mes 📚' });

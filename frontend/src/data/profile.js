@@ -43,12 +43,6 @@ export const profileActions = [
   },
 ]
 
-export const logoutNotice =
-  'Cerrar sesión todavía no está disponible. Lo conectaremos cuando la autenticación esté lista.'
-
-export const localProfileNotice =
-  'Cambios guardados en este dispositivo. Tu cuenta no se actualizó en el servidor.'
-
 export const USERNAME_MAX_LENGTH = 30
 
 /**

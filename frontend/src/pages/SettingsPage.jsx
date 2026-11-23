@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import BottomNav from '../components/BottomNav'
-import { useProfile } from '../state/useProfile'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 const languages = [
@@ -22,7 +22,7 @@ const notificationItems = [
 ]
 
 export default function SettingsPage() {
-  const { profile } = useProfile()
+  const { user } = useAuth()
   const { language, theme, notifications, setLanguage, setTheme, setNotification, t } =
     usePreferences()
 
@@ -102,7 +102,7 @@ export default function SettingsPage() {
 
         <section className="settings-section" aria-labelledby="settings-email">
           <h2 id="settings-email">{t('settings.email')}</h2>
-          <p className="settings-email">{profile.email}</p>
+          <p className="settings-email">{user.correo}</p>
           <p>{t('settings.emailHelp')}</p>
         </section>
 

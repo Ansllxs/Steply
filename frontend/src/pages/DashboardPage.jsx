@@ -3,17 +3,19 @@ import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
-import { dashboardSummary, todayHabits } from '../data/dashboard'
+import { todayHabits } from '../data/dashboard'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 export default function DashboardPage() {
   const { t } = usePreferences()
+  const { user } = useAuth()
   return (
     <main className="dashboard">
       <div className="dashboard-frame">
         <DashboardHeader />
         <p className="dashboard-kicker">{t('dashboard.kicker')}</p>
-        <h1>{t('dashboard.hello', { name: dashboardSummary.name })}</h1>
+        <h1>{t('dashboard.hello', { name: user.nombre })}</h1>
         <p className="dashboard-stats">{t('dashboard.stats')}</p>
         <section className="motivation" aria-label={t('common.steplyMessage')}>
           <div className="motivation-avatar">

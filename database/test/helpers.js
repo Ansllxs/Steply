@@ -31,6 +31,7 @@ export async function crearUsuario(datos = {}) {
     data: {
       nombre: datos.nombre ?? `Usuario ${n}`,
       correo: datos.correo ?? `usuario${n}@prueba.com`,
+      nombreUsuario: datos.nombreUsuario ?? `usuario${n}`,
       passwordHash: '$2b$10$abcdefghijklmnopqrstuuJ4aJ3ZB7m8yqgGJrQWkR1rG1v1v1v1u',
       ...datos,
     },

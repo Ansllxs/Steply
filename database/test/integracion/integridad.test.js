@@ -23,6 +23,12 @@ describe('usuarios', () => {
     await violaRestriccion(crearUsuario({ correo: 'Ana@Correo.com' }), 'usuarios_correo_minusculas_chk', assert);
     await violaRestriccion(crearUsuario({ correo: 'no-es-correo' }), 'usuarios_correo_formato_chk', assert);
   });
+
+  test('el nombre de usuario es único y va en minúsculas', async () => {
+    await crearUsuario({ nombreUsuario: 'ana' });
+    await assert.rejects(crearUsuario({ nombreUsuario: 'ana' }), (e) => e.code === 'P2002');
+    await violaRestriccion(crearUsuario({ nombreUsuario: 'Ana' }), 'usuarios_nombre_usuario_minusculas_chk', assert);
+  });
 });
 
 describe('amistades', () => {

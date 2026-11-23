@@ -3,7 +3,7 @@ import { almacenamientoPerfiles } from '../config/almacenamiento.js';
 import { limpiarUsuario } from './auth.js';
 
 // Lo mínimo que se muestra de otra persona en listas y búsquedas
-export const datosPublicos = { id: true, nombre: true, fotoUrl: true };
+export const datosPublicos = { id: true, nombre: true, nombreUsuario: true, fotoUrl: true };
 
 export async function editarPerfil(usuario, { nombre, descripcion, zonaHoraria }) {
   const actualizado = await prisma.usuario.update({
@@ -38,6 +38,7 @@ export async function buscar(usuario, texto = '') {
       estado: 'ACTIVA',
       OR: [
         { nombre: { contains: texto, mode: 'insensitive' } },
+        { nombreUsuario: { contains: texto.toLowerCase() } },
         { correo: { contains: texto.toLowerCase() } },
       ],
     },
