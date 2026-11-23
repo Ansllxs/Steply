@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import flameIcon from '../assets/icon-flame.svg'
 import imageIcon from '../assets/icon-image.svg'
@@ -9,49 +9,83 @@ import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
+import ProfilePhotoEditor from '../components/ProfilePhotoEditor'
 import {
   localProfileNotice,
   logoutNotice,
   maxProfilePhotoBytes,
   profileActions,
+  profilePhotoTypes,
 } from '../data/profile'
 import { useProfile } from '../state/useProfile'
+import { loadImage } from '../utils/cropImage'
 
 export default function ProfilePage() {
-  const { profile } = useProfile()
+  const { profile, photoUrl, updatePhoto } = useProfile()
   const location = useLocation()
-  const [photoUrl, setPhotoUrl] = useState('')
+  const pendingUrlRef = useRef('')
+  const [pendingUrl, setPendingUrl] = useState('')
   const [photoError, setPhotoError] = useState('')
+  const [photoNotice, setPhotoNotice] = useState('')
   const [notice, setNotice] = useState('')
 
   useEffect(() => {
     return () => {
-      if (photoUrl) URL.revokeObjectURL(photoUrl)
+      if (pendingUrlRef.current) URL.revokeObjectURL(pendingUrlRef.current)
     }
-  }, [photoUrl])
+  }, [])
 
-  function handlePhoto(event) {
+  function replacePendingUrl(nextUrl) {
+    if (pendingUrlRef.current) URL.revokeObjectURL(pendingUrlRef.current)
+    pendingUrlRef.current = nextUrl
+    setPendingUrl(nextUrl)
+  }
+
+  function closeEditor() {
+    replacePendingUrl('')
+    requestAnimationFrame(() => {
+      document.getElementById('profile-photo-input')?.focus()
+    })
+  }
+
+  async function handlePhoto(event) {
     const file = event.target.files?.[0]
+    event.target.value = ''
 
     if (!file) return
 
-    if (!file.type.startsWith('image/')) {
-      setPhotoError('Elige una imagen.')
-      event.target.value = ''
+    if (!profilePhotoTypes.includes(file.type)) {
+      setPhotoError('Elige una imagen JPEG, PNG o WebP.')
+      setPhotoNotice('')
       return
     }
 
     if (file.size > maxProfilePhotoBytes) {
       setPhotoError('La imagen debe pesar 5 MB o menos.')
-      event.target.value = ''
+      setPhotoNotice('')
+      return
+    }
+
+    const url = URL.createObjectURL(file)
+
+    try {
+      await loadImage(url)
+    } catch {
+      URL.revokeObjectURL(url)
+      setPhotoError('No se pudo leer la imagen. Elige otra.')
+      setPhotoNotice('')
       return
     }
 
     setPhotoError('')
-    setPhotoUrl((current) => {
-      if (current) URL.revokeObjectURL(current)
-      return URL.createObjectURL(file)
-    })
+    replacePendingUrl(url)
+  }
+
+  function handleAccept(blob) {
+    updatePhoto(blob)
+    setPhotoNotice('Foto lista')
+    setPhotoError('')
+    closeEditor()
   }
 
   return (
@@ -60,20 +94,22 @@ export default function ProfilePage() {
         <DashboardHeader label="PERFIL" />
         <section className="profile-identity">
           <div className="profile-avatar">
-            <div className="profile-photo">
+            <input
+              id="profile-photo-input"
+              className="visually-hidden"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePhoto}
+            />
+            <label id="profile-photo-trigger" htmlFor="profile-photo-input" className="profile-photo">
               {photoUrl ? (
                 <img className="is-preview" src={photoUrl} alt="" />
               ) : (
                 <img src={imageIcon} alt="" width="28" height="28" />
               )}
-            </div>
-            <label className="profile-edit">
+            </label>
+            <label className="profile-edit" htmlFor="profile-photo-input">
               <span className="visually-hidden">Cambiar foto de perfil</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhoto}
-              />
               <img src={pencilIcon} alt="" width="16" height="16" />
             </label>
           </div>
@@ -91,6 +127,18 @@ export default function ProfilePage() {
           <p className="field-error" role="alert">
             {photoError}
           </p>
+        ) : null}
+        {photoNotice ? (
+          <p className="profile-photo-status" role="status">
+            {photoNotice}
+          </p>
+        ) : null}
+        {pendingUrl ? (
+          <ProfilePhotoEditor
+            imageUrl={pendingUrl}
+            onCancel={closeEditor}
+            onAccept={handleAccept}
+          />
         ) : null}
         <div className="profile-stats">
           <article className="profile-stat">

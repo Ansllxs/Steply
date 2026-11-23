@@ -1,5 +1,7 @@
 export const maxProfilePhotoBytes = 5 * 1024 * 1024
 
+export const profilePhotoTypes = ['image/jpeg', 'image/png', 'image/webp']
+
 export const profile = {
   name: 'Angie Alpízar',
   username: 'angiealpizar',

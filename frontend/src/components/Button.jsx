@@ -6,20 +6,21 @@ export default function Button({
   type = 'button',
   onClick,
   state,
+  disabled = false,
   children,
 }) {
   const className = `btn btn-${variant}`
 
   if (to) {
     return (
-      <Link to={to} className={className} state={state}>
+      <Link to={to} className={className} state={state} aria-disabled={disabled || undefined}>
         {children}
       </Link>
     )
   }
 
   return (
-    <button type={type} className={className} onClick={onClick}>
+    <button type={type} className={className} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   )

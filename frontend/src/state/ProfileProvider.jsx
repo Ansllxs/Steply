@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { profile as defaultProfile } from '../data/profile'
 import { ProfileContext } from './profile-context'
 
@@ -37,6 +37,14 @@ export function ProfileProvider({ children }) {
         username: defaultProfile.username,
       },
   )
+  const [photoUrl, setPhotoUrl] = useState('')
+  const photoUrlRef = useRef('')
+
+  useEffect(() => {
+    return () => {
+      if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current)
+    }
+  }, [])
 
   const value = useMemo(() => {
     function updateIdentity(next) {
@@ -54,14 +62,25 @@ export function ProfileProvider({ children }) {
       }
     }
 
+    function updatePhoto(blob) {
+      // Session preview only. Object URLs are not written to localStorage.
+      const nextUrl = URL.createObjectURL(blob)
+      const previous = photoUrlRef.current
+      photoUrlRef.current = nextUrl
+      setPhotoUrl(nextUrl)
+      if (previous) URL.revokeObjectURL(previous)
+    }
+
     return {
       profile: {
         ...defaultProfile,
         ...identity,
       },
+      photoUrl,
       updateIdentity,
+      updatePhoto,
     }
-  }, [identity])
+  }, [identity, photoUrl])
 
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
