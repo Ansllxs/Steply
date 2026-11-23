@@ -22,6 +22,10 @@ export default function GroupRankingPage() {
     )
   }
 
+  const ranking = [...group.ranking]
+    .sort((a, b) => b.points - a.points)
+    .map((entry, index) => ({ ...entry, place: index + 1 }))
+
   return (
     <main className="sheet group-ranking">
       <div className="sheet-frame">
@@ -31,22 +35,28 @@ export default function GroupRankingPage() {
         <p className="dashboard-kicker">PUNTOS ACUMULADOS</p>
         <h1>Ranking</h1>
         <p className="dashboard-stats">
-          {group.name} · {group.ranking.length} posiciones de ejemplo
+          {ranking.length
+            ? `${group.name} · ${ranking.length} posiciones de ejemplo`
+            : group.name}
         </p>
-        <ol className="rank-list">
-          {group.ranking.map((entry) => (
-            <li
-              key={entry.place}
-              className={entry.current ? 'rank-row is-current' : 'rank-row'}
-            >
-              <span className={entry.place === 1 ? 'rank-medal is-first' : 'rank-medal'}>
-                {entry.place}
-              </span>
-              <span className="rank-name">{entry.name}</span>
-              <span className="rank-points">{entry.points} pts</span>
-            </li>
-          ))}
-        </ol>
+        {ranking.length ? (
+          <ol className="rank-list">
+            {ranking.map((entry) => (
+              <li
+                key={entry.place}
+                className={entry.current ? 'rank-row is-current' : 'rank-row'}
+              >
+                <span className={entry.place === 1 ? 'rank-medal is-first' : 'rank-medal'}>
+                  {entry.place}
+                </span>
+                <span className="rank-name">{entry.name}</span>
+                <span className="rank-points">{entry.points} pts</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="empty-note">El ranking aparecerá cuando se registren puntos</p>
+        )}
         <div className="celebration" aria-hidden="true">
           <img src={celebration} alt="" width="124" height="121" />
         </div>

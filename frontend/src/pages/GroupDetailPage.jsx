@@ -32,7 +32,9 @@ export default function GroupDetailPage() {
         </Link>
         <p className="dashboard-kicker">DETALLE DEL GRUPO</p>
         <h1>{group.name}</h1>
-        <p className="dashboard-stats">{group.members} integrantes</p>
+        <p className="dashboard-stats">
+          {group.members} {group.members === 1 ? 'integrante' : 'integrantes'}
+        </p>
         <section className="motivation" aria-label="Mensaje de Steply">
           <div className="motivation-avatar">
             <img className="motivation-bunny" src={bunny} alt="" width="69" height="78" />
@@ -47,11 +49,15 @@ export default function GroupDetailPage() {
           </div>
         </section>
         <h2 className="sheet-section">Hábitos del grupo</h2>
-        <ul className="habit-list">
-          {group.habits.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} to={null} />
-          ))}
-        </ul>
+        {group.habits.length ? (
+          <ul className="habit-list">
+            {group.habits.map((habit) => (
+              <HabitCard key={habit.id} habit={habit} to={null} />
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-note">Todavía no hay hábitos grupales.</p>
+        )}
         <div className="group-detail-actions">
           <Button to={`/groups/${group.id}/ranking`}>Ver ranking</Button>
           {group.isAdmin ? (

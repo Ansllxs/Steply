@@ -32,11 +32,15 @@ export default function HabitsPage() {
             </button>
           ))}
         </div>
-        <ul className="habit-list">
-          {visibleHabits.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} />
-          ))}
-        </ul>
+        {visibleHabits.length ? (
+          <ul className="habit-list">
+            {visibleHabits.map((habit) => (
+              <HabitCard key={habit.id} habit={habit} state={{ from: '/habits' }} />
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-note">No hay hábitos para este filtro.</p>
+        )}
         <div className="dashboard-actions">
           <Button to="/habits/new">Crear hábito</Button>
           <Button to="/calendar" variant="secondary">Ver calendario</Button>

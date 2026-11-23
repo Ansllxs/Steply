@@ -141,11 +141,15 @@ export default function CalendarPage() {
         <h2 className="sheet-section">
           {weekdayNames[headingDate.getDay()]} {day} · Hábitos del día
         </h2>
-        <ul className="habit-list calendar-habits">
-          {habitsForDay.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} />
-          ))}
-        </ul>
+        {habitsForDay.length ? (
+          <ul className="habit-list calendar-habits">
+            {habitsForDay.map((habit) => (
+              <HabitCard key={habit.id} habit={habit} state={{ from: '/calendar' }} />
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-note">No hay registros para este día.</p>
+        )}
       </div>
       <BottomNav current="Hábitos" />
     </main>

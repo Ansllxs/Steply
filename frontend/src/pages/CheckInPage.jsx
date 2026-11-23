@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import { checkInDateLabel, habitDetails, habits } from '../data/habits'
@@ -11,6 +11,8 @@ const choices = [
 
 export default function CheckInPage() {
   const { id } = useParams()
+  const location = useLocation()
+  const maxEvidenceBytes = 5 * 1024 * 1024
   const habit = habits.find((item) => item.id === id)
   const detail = habitDetails[id]
   const [choice, setChoice] = useState('')
@@ -49,6 +51,13 @@ export default function CheckInPage() {
       return
     }
 
+    if (file.size > maxEvidenceBytes) {
+      setFileName('')
+      setFileError('La imagen debe pesar 5 MB o menos.')
+      event.target.value = ''
+      return
+    }
+
     setFileError('')
     setFileName(file.name)
   }
@@ -58,6 +67,11 @@ export default function CheckInPage() {
 
     if (!choice) {
       setError('Elige una opción.')
+      setNotice('')
+      return
+    }
+
+    if (fileError) {
       setNotice('')
       return
     }
@@ -77,7 +91,12 @@ export default function CheckInPage() {
   return (
     <main className="sheet">
       <div className="sheet-frame">
-        <Link className="auth-back" to={`/habits/${habit.id}`} aria-label="Volver">
+        <Link
+          className="auth-back"
+          to={`/habits/${habit.id}`}
+          state={location.state}
+          aria-label="Volver"
+        >
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
         <p className="dashboard-kicker">CUMPLIMIENTO</p>

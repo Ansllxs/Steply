@@ -71,7 +71,19 @@ export const groups = [
       { place: 3, name: 'Angie', points: 210, current: true },
     ],
   },
+  {
+    id: 'grupo-nuevo',
+    name: 'Nuevo grupo',
+    members: 1,
+    isAdmin: true,
+    habits: [],
+    ranking: [],
+  },
 ]
+
+export function administrableGroups() {
+  return groups.filter((group) => group.isAdmin)
+}
 
 export function findGroup(id) {
   return groups.find((group) => group.id === id)

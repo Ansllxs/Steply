@@ -20,7 +20,7 @@ const icons = {
   settings: settingsIcon,
 }
 
-export default function HabitCard({ habit, to, onClick }) {
+export default function HabitCard({ habit, to, state, onClick }) {
   const destination = to === undefined ? `/habits/${habit.id}` : to
   const content = (
     <>
@@ -43,7 +43,7 @@ export default function HabitCard({ habit, to, onClick }) {
   return (
     <li>
       {destination ? (
-        <Link className="habit-card" to={destination}>
+        <Link className="habit-card" to={destination} state={state}>
           {content}
         </Link>
       ) : onClick ? (

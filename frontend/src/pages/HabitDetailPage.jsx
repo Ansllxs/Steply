@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import cameraIcon from '../assets/icon-camera.svg'
 import checkIcon from '../assets/icon-check.svg'
@@ -7,6 +7,8 @@ import { habitDetails, habits, weekDays } from '../data/habits'
 
 export default function HabitDetailPage() {
   const { id } = useParams()
+  const location = useLocation()
+  const backTo = location.state?.from || '/habits'
   const habit = habits.find((item) => item.id === id)
   const detail = habitDetails[id]
 
@@ -30,7 +32,7 @@ export default function HabitDetailPage() {
   return (
     <main className="sheet">
       <div className="sheet-frame">
-        <Link className="auth-back" to="/habits" aria-label="Volver">
+        <Link className="auth-back" to={backTo} aria-label="Volver">
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
         <p className="dashboard-kicker">DETALLE DEL HÁBITO</p>
@@ -70,7 +72,9 @@ export default function HabitDetailPage() {
           <span>Fotos de registros anteriores</span>
         </button>
         <div className="sheet-submit">
-          <Button to={`/habits/${habit.id}/check-in`}>Registrar cumplimiento</Button>
+          <Button to={`/habits/${habit.id}/check-in`} state={location.state}>
+            Registrar cumplimiento
+          </Button>
         </div>
       </div>
     </main>

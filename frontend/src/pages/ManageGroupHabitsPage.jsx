@@ -53,17 +53,27 @@ export default function ManageGroupHabitsPage() {
         <h1>Gestionar hábitos</h1>
         <p className="dashboard-stats">{group.name} · Administrador del grupo</p>
         <h2 className="sheet-section">Hábitos grupales</h2>
-        <ul className="habit-list">
-          {group.habits.map((habit) => (
-            <HabitCard
-              key={habit.id}
-              habit={{ ...habit, status: 'Hábito grupal' }}
-              to={null}
-            />
-          ))}
-        </ul>
+        {group.habits.length ? (
+          <ul className="habit-list">
+            {group.habits.map((habit) => (
+              <HabitCard
+                key={habit.id}
+                habit={{ ...habit, status: 'Hábito grupal' }}
+                to={`/habits/${habit.id}`}
+                state={{ from: `/groups/${group.id}/manage` }}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-note">Todavía no hay hábitos grupales.</p>
+        )}
         <div className="group-manage-actions">
-          <Button>Agregar hábito grupal</Button>
+          <Button
+            to={`/habits/new?grupo=${group.id}`}
+            state={{ from: `/groups/${group.id}/manage` }}
+          >
+            Agregar hábito grupal
+          </Button>
           <Button variant="secondary" to={`/groups/${group.id}`}>
             Volver al grupo
           </Button>

@@ -3,6 +3,7 @@ export const habits = [
     id: 'leer',
     title: 'Leer',
     scope: 'personal',
+    groupId: null,
     status: 'Personal · Diario',
     progress: '0/1',
     icon: 'book',
@@ -11,6 +12,7 @@ export const habits = [
     id: 'tomar-agua',
     title: 'Tomar agua',
     scope: 'personal',
+    groupId: null,
     status: 'Personal · Diario',
     progress: '1/1',
     icon: 'drop',
@@ -19,9 +21,19 @@ export const habits = [
     id: 'estudiar',
     title: 'Estudiar',
     scope: 'group',
+    groupId: 'compu-squad',
     status: 'Compu squad · Diario',
     progress: '0/1',
     icon: 'cap',
+  },
+  {
+    id: 'hacer-ejercicio',
+    title: 'Hacer ejercicio',
+    scope: 'group',
+    groupId: 'compu-squad',
+    status: 'Compu squad · Diario',
+    progress: '0/1',
+    icon: 'activity',
   },
 ]
 
@@ -60,6 +72,16 @@ export const habitDetails = {
     streak: '0 días',
     points: '0',
   },
+  'hacer-ejercicio': {
+    subtitle: 'Diario · Compu squad',
+    week: [false, false, false, false, false, false, false],
+    streak: '0 días',
+    points: '0',
+  },
+}
+
+export function findHabit(id) {
+  return habits.find((habit) => habit.id === id)
 }
 
 export const checkInDateLabel = '5 de octubre de 2026'

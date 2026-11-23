@@ -35,7 +35,7 @@ export default function DashboardPage() {
         <h2 className="dashboard-section">Mis hábitos de hoy</h2>
         <ul className="habit-list">
           {todayHabits.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} />
+            <HabitCard key={habit.id} habit={habit} state={{ from: '/dashboard' }} />
           ))}
         </ul>
         <div className="dashboard-actions">

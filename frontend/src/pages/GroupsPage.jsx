@@ -40,7 +40,7 @@ export default function GroupsPage() {
               habit={{
                 id: group.id,
                 title: group.name,
-                status: `${group.members} integrantes`,
+                status: `${group.members} ${group.members === 1 ? 'integrante' : 'integrantes'}`,
                 icon: 'groups',
               }}
               to={`/groups/${group.id}`}
