@@ -55,7 +55,9 @@ export default function GroupDetailPage() {
         <div className="group-detail-actions">
           <Button to={`/groups/${group.id}/ranking`}>Ver ranking</Button>
           {group.isAdmin ? (
-            <Button variant="secondary">Gestionar hábitos del grupo</Button>
+            <Button variant="secondary" to={`/groups/${group.id}/manage`}>
+              Gestionar hábitos del grupo
+            </Button>
           ) : null}
         </div>
       </div>

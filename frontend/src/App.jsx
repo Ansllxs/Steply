@@ -4,9 +4,11 @@ import CheckInPage from './pages/CheckInPage'
 import CreateHabitPage from './pages/CreateHabitPage'
 import DashboardPage from './pages/DashboardPage'
 import HabitDetailPage from './pages/HabitDetailPage'
+import CreateGroupPage from './pages/CreateGroupPage'
 import GroupDetailPage from './pages/GroupDetailPage'
 import GroupRankingPage from './pages/GroupRankingPage'
 import GroupsPage from './pages/GroupsPage'
+import ManageGroupHabitsPage from './pages/ManageGroupHabitsPage'
 import HabitsPage from './pages/HabitsPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
@@ -25,7 +27,9 @@ export default function App() {
       <Route path="/habits/:id" element={<HabitDetailPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/groups" element={<GroupsPage />} />
+      <Route path="/groups/new" element={<CreateGroupPage />} />
       <Route path="/groups/:id/ranking" element={<GroupRankingPage />} />
+      <Route path="/groups/:id/manage" element={<ManageGroupHabitsPage />} />
       <Route path="/groups/:id" element={<GroupDetailPage />} />
     </Routes>
   )

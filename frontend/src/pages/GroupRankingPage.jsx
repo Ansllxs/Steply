@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
+import celebration from '../assets/celebracion.png'
 import { findGroup } from '../data/groups'
 
 export default function GroupRankingPage() {
@@ -46,7 +47,9 @@ export default function GroupRankingPage() {
             </li>
           ))}
         </ol>
-        <div className="celebration" aria-hidden="true" />
+        <div className="celebration" aria-hidden="true">
+          <img src={celebration} alt="" width="124" height="121" />
+        </div>
       </div>
     </main>
   )

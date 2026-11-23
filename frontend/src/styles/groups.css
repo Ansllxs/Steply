@@ -130,9 +130,73 @@
 }
 
 .celebration {
+  display: flex;
+  justify-content: center;
   width: 146px;
   height: 146px;
   margin: 45px auto 0;
+  padding-top: 11px;
   border-radius: 73px;
   background: var(--color-soft);
+}
+
+.celebration img {
+  width: 124px;
+  height: 121px;
+  max-width: none;
+}
+
+.create-group-art {
+  display: flex;
+  justify-content: center;
+  height: 174px;
+  margin-top: 18px;
+  padding-top: 20px;
+  border-radius: 22px;
+  background: var(--color-soft);
+}
+
+.create-group-art img {
+  width: 117px;
+  height: 132px;
+  max-width: none;
+}
+
+.create-group-form .field {
+  margin-top: 33px;
+}
+
+.create-group-help {
+  margin: 15px 0 0;
+  color: var(--color-secondary-text);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.create-group-actions,
+.group-manage-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-group-actions {
+  margin-top: 58px;
+}
+
+.create-group-actions .auth-notice {
+  margin-top: 4px;
+}
+
+.group-manage .sheet-section {
+  margin-top: 26px;
+}
+
+.group-manage .habit-list {
+  margin-top: 14px;
+}
+
+.group-manage-actions {
+  margin-top: 56px;
 }

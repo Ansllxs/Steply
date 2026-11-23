@@ -48,7 +48,7 @@ export default function GroupsPage() {
           ))}
         </ul>
         <div className="groups-actions">
-          <Button>Crear un grupo</Button>
+          <Button to="/groups/new">Crear un grupo</Button>
         </div>
       </div>
       <BottomNav />
