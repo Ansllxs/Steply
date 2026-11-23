@@ -68,10 +68,11 @@ export default function CheckInPage() {
     )
   }
 
-  const status = error
-    || (choice
-      ? `Elegiste: ${choices.find((item) => item.id === choice).label}.`
-      : 'Elige una opción.')
+  const statusLabels = {
+    yes: 'Seleccionado · Completado',
+    no: 'Seleccionado · Sin completar',
+  }
+  const status = error || (choice ? statusLabels[choice] : 'Elige una opción.')
 
   return (
     <main className="sheet">
@@ -93,7 +94,7 @@ export default function CheckInPage() {
               const className = [
                 'choice',
                 item.id === 'yes' ? 'choice-yes' : 'choice-no',
-                choice && (selected ? 'is-selected' : 'is-unselected'),
+                selected ? 'is-selected' : '',
               ]
                 .filter(Boolean)
                 .join(' ')
