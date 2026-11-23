@@ -2,11 +2,15 @@
   "name": "steply",
   "private": true,
   "version": "1.0.0",
-  "workspaces": ["backend", "database"],
+  "workspaces": [
+    "backend",
+    "database"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace @steply/backend",
     "db:migrate": "npm run db:migrate --workspace @steply/database",
     "db:seed": "npm run db:seed --workspace @steply/database",
-    "db:studio": "npm run db:studio --workspace @steply/database"
+    "db:studio": "npm run db:studio --workspace @steply/database",
+    "db:deploy": "npm run db:deploy --workspace @steply/database"
   }
 }
