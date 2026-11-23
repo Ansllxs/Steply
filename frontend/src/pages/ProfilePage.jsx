@@ -12,7 +12,6 @@ import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
 import ProfilePhotoEditor from '../components/ProfilePhotoEditor'
-import SuccessFeedback from '../components/SuccessFeedback'
 import {
   maxProfilePhotoBytes,
   profileActions,
@@ -30,7 +29,8 @@ export default function ProfilePage() {
   const pendingUrlRef = useRef('')
   const [pendingUrl, setPendingUrl] = useState('')
   const [photoError, setPhotoError] = useState('')
-  const [photoNotice, setPhotoNotice] = useState('')
+  const [photoToast, setPhotoToast] = useState(0)
+  const [toastVisible, setToastVisible] = useState(false)
   const [photoLoading, setPhotoLoading] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -74,7 +74,6 @@ export default function ProfilePage() {
     const url = URL.createObjectURL(file)
     setPhotoLoading(true)
     setPhotoError('')
-    setPhotoNotice('')
 
     try {
       await loadImage(url)
@@ -91,8 +90,9 @@ export default function ProfilePage() {
 
   function handleAccept(blob) {
     updatePhoto(blob)
-    setPhotoNotice('profile.photoReady')
     setPhotoError('')
+    setPhotoToast((current) => current + 1)
+    setToastVisible(true)
     closeEditor()
   }
 
@@ -137,7 +137,6 @@ export default function ProfilePage() {
             {t(photoError)}
           </p>
         ) : null}
-        <SuccessFeedback message={photoNotice ? t(photoNotice) : ''} />
         {pendingUrl ? (
           <ProfilePhotoEditor
             imageUrl={pendingUrl}
@@ -195,6 +194,14 @@ export default function ProfilePage() {
         </div>
       </div>
       <BottomNav />
+      <AnimatedToast
+        floating
+        open={toastVisible}
+        token={photoToast}
+        title={t('profile.photoReady')}
+        subtitle={t('profile.photoReadyDetail')}
+        onClose={() => setToastVisible(false)}
+      />
     </main>
   )
 }
