@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import Button from './Button'
+import LoadingIndicator from './LoadingIndicator'
 import { usePreferences } from '../state/usePreferences'
 import { cropImageToBlob } from '../utils/cropImage'
 
@@ -94,6 +95,7 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-busy={busy || undefined}
       >
         <h2 id={titleId}>{t('profile.cropTitle')}</h2>
         <p>{t('profile.cropLead')}</p>
@@ -136,6 +138,7 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
             onChange={(event) => setZoom(Number(event.target.value))}
           />
         </label>
+        {busy ? <LoadingIndicator /> : null}
         {error ? (
           <p className="field-error" role="alert">
             {t(error)}

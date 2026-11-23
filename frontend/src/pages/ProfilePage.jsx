@@ -5,11 +5,14 @@ import imageIcon from '../assets/icon-image.svg'
 import logoutIcon from '../assets/icon-logout.svg'
 import pencilIcon from '../assets/icon-pencil.svg'
 import starIcon from '../assets/icon-star.svg'
+import AnimatedToast from '../components/AnimatedToast'
 import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
+import LoadingIndicator from '../components/LoadingIndicator'
 import ProfilePhotoEditor from '../components/ProfilePhotoEditor'
+import SuccessFeedback from '../components/SuccessFeedback'
 import {
   maxProfilePhotoBytes,
   profileActions,
@@ -28,6 +31,7 @@ export default function ProfilePage() {
   const [pendingUrl, setPendingUrl] = useState('')
   const [photoError, setPhotoError] = useState('')
   const [photoNotice, setPhotoNotice] = useState('')
+  const [photoLoading, setPhotoLoading] = useState(false)
   const [notice, setNotice] = useState('')
 
   useEffect(() => {
@@ -68,17 +72,20 @@ export default function ProfilePage() {
     }
 
     const url = URL.createObjectURL(file)
+    setPhotoLoading(true)
+    setPhotoError('')
+    setPhotoNotice('')
 
     try {
       await loadImage(url)
     } catch {
       URL.revokeObjectURL(url)
       setPhotoError('profile.photoRead')
-      setPhotoNotice('')
+      setPhotoLoading(false)
       return
     }
 
-    setPhotoError('')
+    setPhotoLoading(false)
     replacePendingUrl(url)
   }
 
@@ -104,7 +111,7 @@ export default function ProfilePage() {
             />
             <label id="profile-photo-trigger" htmlFor="profile-photo-input" className="profile-photo">
               {photoUrl ? (
-                <img className="is-preview" src={photoUrl} alt="" />
+                <img key={photoUrl} className="is-preview" src={photoUrl} alt="" />
               ) : (
                 <img src={imageIcon} alt="" width="28" height="28" />
               )}
@@ -124,16 +131,13 @@ export default function ProfilePage() {
             {t('profile.savedLocally')}
           </p>
         ) : null}
+        {photoLoading ? <LoadingIndicator message={t('loading.image')} /> : null}
         {photoError ? (
           <p className="field-error" role="alert">
             {t(photoError)}
           </p>
         ) : null}
-        {photoNotice ? (
-          <p className="profile-photo-status" role="status">
-            {t(photoNotice)}
-          </p>
-        ) : null}
+        <SuccessFeedback message={photoNotice ? t(photoNotice) : ''} />
         {pendingUrl ? (
           <ProfilePhotoEditor
             imageUrl={pendingUrl}
@@ -187,11 +191,7 @@ export default function ProfilePage() {
             <img src={logoutIcon} alt="" width="18" height="18" />
             {t('profile.logout')}
           </Button>
-          {notice ? (
-            <p className="auth-notice" role="status">
-              {t(notice)}
-            </p>
-          ) : null}
+          <AnimatedToast message={notice ? t(notice) : ''} />
         </div>
       </div>
       <BottomNav />
