@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import flameIcon from '../assets/icon-flame.svg'
 import imageIcon from '../assets/icon-image.svg'
 import logoutIcon from '../assets/icon-logout.svg'
@@ -9,13 +10,16 @@ import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import {
+  localProfileNotice,
   logoutNotice,
   maxProfilePhotoBytes,
-  profile,
   profileActions,
 } from '../data/profile'
+import { useProfile } from '../state/useProfile'
 
 export default function ProfilePage() {
+  const { profile } = useProfile()
+  const location = useLocation()
   const [photoUrl, setPhotoUrl] = useState('')
   const [photoError, setPhotoError] = useState('')
   const [notice, setNotice] = useState('')
@@ -78,6 +82,11 @@ export default function ProfilePage() {
             <p className="profile-handle">@{profile.username}</p>
           </div>
         </section>
+        {location.state?.savedLocally ? (
+          <p className="auth-notice profile-save-note" role="status">
+            {localProfileNotice}
+          </p>
+        ) : null}
         {photoError ? (
           <p className="field-error" role="alert">
             {photoError}

@@ -29,7 +29,7 @@ export const profileActions = [
     title: 'Editar perfil',
     status: 'Actualiza tu información',
     icon: 'profile',
-    notice: 'Editar perfil todavía no está disponible.',
+    to: '/profile/edit',
   },
   {
     id: 'settings',
@@ -42,3 +42,35 @@ export const profileActions = [
 
 export const logoutNotice =
   'Cerrar sesión todavía no está disponible. Lo conectaremos cuando la autenticación esté lista.'
+
+export const localProfileNotice =
+  'Cambios guardados en este dispositivo. Tu cuenta no se actualizó en el servidor.'
+
+export const USERNAME_MAX_LENGTH = 30
+
+/**
+ * Demo username rule, checked only in the browser:
+ * 1–30 letters (including accents), numbers, underscores, or periods.
+ * Spaces are not allowed. Availability is not checked.
+ */
+export const USERNAME_PATTERN = /^[\p{L}\p{N}_.]{1,30}$/u
+
+export function validateProfileIdentity(name, username) {
+  const errors = {}
+  const trimmedName = name.trim()
+  const trimmedUsername = username.trim()
+
+  if (!trimmedName) {
+    errors.name = 'Ingresa tu nombre.'
+  }
+
+  if (!trimmedUsername) {
+    errors.username = 'Ingresa tu nombre de usuario.'
+  } else if (/\s/.test(username)) {
+    errors.username = 'El nombre de usuario no puede contener espacios.'
+  } else if (!USERNAME_PATTERN.test(trimmedUsername)) {
+    errors.username = `Usa solo letras, números, guiones bajos y puntos (máximo ${USERNAME_MAX_LENGTH}).`
+  }
+
+  return errors
+}

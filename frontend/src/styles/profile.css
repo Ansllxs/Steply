@@ -165,6 +165,38 @@
   margin-top: 12px;
 }
 
+.profile-save-note {
+  margin-top: 14px;
+  text-align: left;
+}
+
+.edit-profile .auth-back {
+  margin-bottom: 18px;
+}
+
+.edit-profile h1 {
+  margin-top: 0;
+}
+
+.edit-profile-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 22px;
+}
+
+.edit-profile-form .field + .field {
+  margin-top: 16px;
+}
+
+.edit-profile-form .auth-actions {
+  margin-top: 28px;
+}
+
+.edit-profile .btn-secondary:hover {
+  background: var(--color-soft);
+  color: var(--color-purple);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
