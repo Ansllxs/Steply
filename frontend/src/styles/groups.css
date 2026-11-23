@@ -1,0 +1,202 @@
+.group-search {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.group-search label {
+  color: var(--color-dark);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.group-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 13px;
+  background: var(--color-white);
+}
+
+.group-search-field img {
+  width: 22px;
+  height: 22px;
+  max-width: none;
+}
+
+.group-search-field input {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-dark);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.group-search-field input::placeholder {
+  color: var(--color-secondary-text);
+  opacity: 1;
+}
+
+.group-list {
+  margin-top: 20px;
+}
+
+.groups-actions {
+  margin-top: 102px;
+}
+
+.group-detail .motivation {
+  margin-top: 13px;
+}
+
+.group-detail .sheet-section {
+  margin-top: 26px;
+}
+
+.group-detail .habit-list {
+  margin-top: 17px;
+}
+
+.group-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 43px;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 14px;
+  min-height: 56px;
+  padding: 0 16px 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+  background: var(--color-white);
+}
+
+.rank-row.is-current {
+  background: var(--color-soft);
+}
+
+.rank-medal {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  background: var(--color-soft);
+  color: var(--color-purple);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.rank-medal.is-first {
+  background: var(--color-pink);
+}
+
+.rank-name {
+  color: var(--color-dark);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.rank-points {
+  color: var(--color-purple);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: right;
+}
+
+.celebration {
+  display: flex;
+  justify-content: center;
+  width: 146px;
+  height: 146px;
+  margin: 45px auto 0;
+  padding-top: 11px;
+  border-radius: 73px;
+  background: var(--color-soft);
+}
+
+.celebration img {
+  width: 124px;
+  height: 121px;
+  max-width: none;
+}
+
+.create-group-art {
+  display: flex;
+  justify-content: center;
+  height: 174px;
+  margin-top: 18px;
+  padding-top: 20px;
+  border-radius: 22px;
+  background: var(--color-soft);
+}
+
+.create-group-art img {
+  width: 117px;
+  height: 132px;
+  max-width: none;
+}
+
+.create-group-form .field {
+  margin-top: 33px;
+}
+
+.create-group-help {
+  margin: 15px 0 0;
+  color: var(--color-secondary-text);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.create-group-actions,
+.group-manage-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-group-actions {
+  margin-top: 58px;
+}
+
+.create-group-actions .auth-notice {
+  margin-top: 4px;
+}
+
+.group-manage .sheet-section {
+  margin-top: 26px;
+}
+
+.group-manage .habit-list {
+  margin-top: 14px;
+}
+
+.group-manage-actions {
+  margin-top: 56px;
+}

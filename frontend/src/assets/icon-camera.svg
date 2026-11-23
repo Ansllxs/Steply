@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="camera">
+<path id="Body" d="M4 8.5H7.2L8.6 6.5H15.4L16.8 8.5H20V18.5H4V8.5Z" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" stroke="#6344A4"/>
+<circle id="Lens" cx="12" cy="13.25" r="2.6" stroke-width="1.75" stroke="#6344A4"/>
+</g>
+</svg>

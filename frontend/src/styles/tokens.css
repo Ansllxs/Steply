@@ -1,0 +1,50 @@
+/*
+  Mobile first. Base styles target 375px and 390px.
+  Tablet: min-width 768px. Desktop: min-width 1440px.
+  Use these tokens for spacing, type, and touch targets on every screen.
+*/
+:root {
+  color-scheme: light;
+  --color-background: #FCF7F0;
+  --color-white: #FFFFFF;
+  --color-primary: #6344A4;
+  --color-accent: #6344A4;
+  --color-on-primary: #FFFFFF;
+  --color-primary-hover: #251442;
+  --color-dark: #251442;
+  --color-soft: #ECE3F7;
+  --color-secondary-text: #62536E;
+  --color-pink: #F8DCE8;
+  --color-purple: #4E2D88;
+  --color-border: #E7DBE9;
+
+  --font-sans: Inter, system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.5rem, 1.15rem + 1.4vw, 2.25rem);
+
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  --radius: 0.75rem;
+  --touch-target: 2.75rem;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: #17111F;
+  --color-white: #261C33;
+  --color-primary: #6344A4;
+  --color-accent: #E4D4FF;
+  --color-on-primary: #FFFFFF;
+  --color-primary-hover: #4A2D80;
+  --color-dark: #F8F3EC;
+  --color-soft: #3A2C50;
+  --color-secondary-text: #D9CCE6;
+  --color-pink: #5A3A4A;
+  --color-purple: #E7D8FA;
+  --color-border: #4E3E66;
+}

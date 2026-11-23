@@ -1,0 +1,131 @@
+.welcome {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: calc(54px + env(safe-area-inset-top)) 24px
+    calc(32px + env(safe-area-inset-bottom));
+  background: var(--color-background);
+}
+
+.welcome-inner {
+  width: min(100%, 342px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-logo {
+  display: block;
+  width: 192px;
+  max-width: 100%;
+  height: auto;
+}
+
+.welcome-hero {
+  position: relative;
+  width: 174px;
+  max-width: 100%;
+  margin-top: 17px;
+}
+
+.welcome-halo,
+.welcome-dot {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.welcome-halo {
+  z-index: 0;
+  top: 7px;
+  left: 50%;
+  width: 240px;
+  height: 240px;
+  border-radius: 120px;
+  background: var(--color-soft);
+  transform: translateX(-50%);
+}
+
+.welcome-dot-pink {
+  z-index: 2;
+  top: 28px;
+  left: 180px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--color-pink);
+}
+
+.welcome-dot-lilac {
+  z-index: 0;
+  top: 210px;
+  left: -33px;
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--color-soft);
+}
+
+.welcome-bunny {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 174px;
+  max-width: 100%;
+  height: auto;
+}
+
+.welcome-kicker {
+  margin-top: 26px;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.welcome h1 {
+  margin-top: 13px;
+  color: var(--color-dark);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 38px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.welcome-copy {
+  margin-top: 15px;
+  color: var(--color-secondary-text);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 36px;
+}
+
+@media (min-width: 768px) {
+  .welcome {
+    justify-content: center;
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .welcome {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
