@@ -3,8 +3,10 @@ import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import { findGroup } from '../data/groups'
+import { usePreferences } from '../state/usePreferences'
 
 export default function ManageGroupHabitsPage() {
+  const { t } = usePreferences()
   const { id } = useParams()
   const group = findGroup(id)
 
@@ -12,12 +14,12 @@ export default function ManageGroupHabitsPage() {
     return (
       <main className="sheet">
         <div className="sheet-frame">
-          <Link className="auth-back" to="/groups" aria-label="Volver">
+          <Link className="auth-back" to="/groups" aria-label={t('common.back')}>
             <img src={backIcon} alt="" width="22" height="22" />
           </Link>
-          <p className="dashboard-kicker">ADMINISTRACIÓN</p>
-          <h1>Gestionar hábitos</h1>
-          <p className="dashboard-stats">Este grupo no está en los datos de ejemplo.</p>
+          <p className="dashboard-kicker">{t('manage.kicker')}</p>
+          <h1>{t('manage.title')}</h1>
+          <p className="dashboard-stats">{t('group.missingLead')}</p>
         </div>
       </main>
     )
@@ -27,16 +29,14 @@ export default function ManageGroupHabitsPage() {
     return (
       <main className="sheet">
         <div className="sheet-frame">
-          <Link className="auth-back" to={`/groups/${group.id}`} aria-label="Volver">
+          <Link className="auth-back" to={`/groups/${group.id}`} aria-label={t('common.back')}>
             <img src={backIcon} alt="" width="22" height="22" />
           </Link>
-          <p className="dashboard-kicker">ADMINISTRACIÓN</p>
-          <h1>Gestionar hábitos</h1>
-          <p className="dashboard-stats">
-            Solo el administrador puede gestionar los hábitos de {group.name}.
-          </p>
+          <p className="dashboard-kicker">{t('manage.kicker')}</p>
+          <h1>{t('manage.title')}</h1>
+          <p className="dashboard-stats">{t('manage.onlyAdmin', { name: group.name })}</p>
           <div className="group-manage-actions">
-            <Button to={`/groups/${group.id}`}>Volver al grupo</Button>
+            <Button to={`/groups/${group.id}`}>{t('manage.back')}</Button>
           </div>
         </div>
       </main>
@@ -46,13 +46,13 @@ export default function ManageGroupHabitsPage() {
   return (
     <main className="sheet group-manage">
       <div className="sheet-frame">
-        <Link className="auth-back" to={`/groups/${group.id}`} aria-label="Volver">
+        <Link className="auth-back" to={`/groups/${group.id}`} aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">ADMINISTRACIÓN</p>
-        <h1>Gestionar hábitos</h1>
-        <p className="dashboard-stats">{group.name} · Administrador del grupo</p>
-        <h2 className="sheet-section">Hábitos grupales</h2>
+        <p className="dashboard-kicker">{t('manage.kicker')}</p>
+        <h1>{t('manage.title')}</h1>
+        <p className="dashboard-stats">{t('manage.role', { name: group.name })}</p>
+        <h2 className="sheet-section">{t('manage.list')}</h2>
         {group.habits.length ? (
           <ul className="habit-list">
             {group.habits.map((habit) => (
@@ -65,17 +65,17 @@ export default function ManageGroupHabitsPage() {
             ))}
           </ul>
         ) : (
-          <p className="empty-note">Todavía no hay hábitos grupales.</p>
+          <p className="empty-note">{t('group.empty')}</p>
         )}
         <div className="group-manage-actions">
           <Button
             to={`/habits/new?grupo=${group.id}`}
             state={{ from: `/groups/${group.id}/manage` }}
           >
-            Agregar hábito grupal
+            {t('manage.add')}
           </Button>
           <Button variant="secondary" to={`/groups/${group.id}`}>
-            Volver al grupo
+            {t('manage.back')}
           </Button>
         </div>
       </div>

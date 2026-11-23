@@ -5,8 +5,10 @@ import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import { groups } from '../data/groups'
+import { usePreferences } from '../state/usePreferences'
 
 export default function GroupsPage() {
+  const { t } = usePreferences()
   const [query, setQuery] = useState('')
   const normalized = query.trim().toLocaleLowerCase('es')
   const visibleGroups = normalized
@@ -17,18 +19,18 @@ export default function GroupsPage() {
     <main className="dashboard groups-page">
       <div className="dashboard-frame">
         <DashboardHeader />
-        <p className="dashboard-kicker">TU COMUNIDAD</p>
-        <h1>Grupos</h1>
-        <p className="dashboard-stats">Encuentra los grupos en los que participas.</p>
+        <p className="dashboard-kicker">{t('groups.kicker')}</p>
+        <h1>{t('groups.title')}</h1>
+        <p className="dashboard-stats">{t('groups.lead')}</p>
         <div className="group-search">
-          <label htmlFor="group-search">Buscar</label>
+          <label htmlFor="group-search">{t('groups.search')}</label>
           <div className="group-search-field">
             <img src={searchIcon} alt="" width="22" height="22" />
             <input
               id="group-search"
               type="search"
               value={query}
-              placeholder="Buscar mis grupos"
+              placeholder={t('groups.searchPlaceholder')}
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
@@ -40,7 +42,9 @@ export default function GroupsPage() {
               habit={{
                 id: group.id,
                 title: group.name,
-                status: `${group.members} ${group.members === 1 ? 'integrante' : 'integrantes'}`,
+                status: t(group.members === 1 ? 'groups.member' : 'groups.members', {
+                  count: group.members,
+                }),
                 icon: 'groups',
               }}
               to={`/groups/${group.id}`}
@@ -48,7 +52,7 @@ export default function GroupsPage() {
           ))}
         </ul>
         <div className="groups-actions">
-          <Button to="/groups/new">Crear un grupo</Button>
+          <Button to="/groups/new">{t('groups.create')}</Button>
         </div>
       </div>
       <BottomNav />

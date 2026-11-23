@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { translatePhrase } from '../i18n/phrases'
+import { usePreferences } from '../state/usePreferences'
 import activityIcon from '../assets/icon-activity.svg'
 import bookIcon from '../assets/icon-book.svg'
 import calendarIcon from '../assets/icon-calendar.svg'
@@ -21,6 +23,7 @@ const icons = {
 }
 
 export default function HabitCard({ habit, to, state, onClick }) {
+  const { language } = usePreferences()
   const destination = to === undefined ? `/habits/${habit.id}` : to
   const content = (
     <>
@@ -28,8 +31,8 @@ export default function HabitCard({ habit, to, state, onClick }) {
         <img src={icons[habit.icon]} alt="" width="20" height="20" />
       </span>
       <span className="habit-card-copy">
-        <span className="habit-card-title">{habit.title}</span>
-        <span className="habit-card-status">{habit.status}</span>
+        <span className="habit-card-title">{translatePhrase(language, habit.title)}</span>
+        <span className="habit-card-status">{translatePhrase(language, habit.status)}</span>
       </span>
       <span className="habit-card-meta">
         {habit.progress ? (

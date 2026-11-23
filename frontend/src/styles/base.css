@@ -48,7 +48,7 @@ p {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 button,
@@ -62,7 +62,7 @@ textarea {
 }
 
 button {
-  color: var(--color-white);
+  color: var(--color-on-primary);
   background: var(--color-primary);
   border: 0;
   border-radius: 999px;

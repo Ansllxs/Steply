@@ -4,31 +4,30 @@ import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
 import { administrableGroups } from '../data/groups'
+import { usePreferences } from '../state/usePreferences'
 
-const types = [
-  { id: 'personal', label: 'Personal' },
-  { id: 'group', label: 'Grupal' },
-]
+const types = [{ id: 'personal' }, { id: 'group' }]
 
 function validateHabit(name, frequency, type, groupId) {
   const errors = {}
 
   if (!name.trim()) {
-    errors.name = 'Ingresa el nombre del hábito.'
+    errors.name = 'validation.habitName'
   }
 
   if (!frequency.trim()) {
-    errors.frequency = 'Ingresa la frecuencia.'
+    errors.frequency = 'validation.frequency'
   }
 
   if (type === 'group' && !groupId) {
-    errors.group = 'Elige el grupo.'
+    errors.group = 'validation.group'
   }
 
   return errors
 }
 
 export default function CreateHabitPage() {
+  const { t } = usePreferences()
   const location = useLocation()
   const [params] = useSearchParams()
   const managedGroups = administrableGroups()
@@ -53,36 +52,34 @@ export default function CreateHabitPage() {
       return
     }
 
-    setNotice(
-      'Tu información se ve bien. Conectaremos el guardado del hábito cuando el servidor esté disponible.',
-    )
+    setNotice('habit.notice')
   }
 
   return (
     <main className="create-habit">
       <div className="create-habit-frame">
-        <Link className="auth-back" to={backTo} aria-label="Volver">
+        <Link className="auth-back" to={backTo} aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">NUEVA RUTINA</p>
-        <h1>Crear hábito</h1>
-        <p className="dashboard-stats">Define un hábito personal o grupal.</p>
+        <p className="dashboard-kicker">{t('habit.kicker')}</p>
+        <h1>{t('habit.createTitle')}</h1>
+        <p className="dashboard-stats">{t('habit.createLead')}</p>
         <div className="create-habit-art" />
         <div className="create-habit-bunny" aria-hidden="true" />
         <form className="create-habit-form" onSubmit={handleSubmit} noValidate>
           <TextField
             id="habit-name"
             name="name"
-            label="Nombre del hábito"
+            label={t('habit.name')}
             value={name}
             placeholder="Leer"
             autoComplete="off"
             onChange={(event) => setName(event.target.value)}
-            error={errors.name}
+            error={errors.name ? t(errors.name) : undefined}
           />
           <fieldset className="type-field">
-            <legend>Tipo</legend>
-            <div className="type-options" role="radiogroup" aria-label="Tipo">
+            <legend>{t('habit.type')}</legend>
+            <div className="type-options" role="radiogroup" aria-label={t('habit.type')}>
               {types.map((item) => (
                 <button
                   key={item.id}
@@ -94,14 +91,14 @@ export default function CreateHabitPage() {
                   aria-checked={type === item.id}
                   onClick={() => setType(item.id)}
                 >
-                  {item.label}
+                  {t(item.id === 'personal' ? 'habit.personal' : 'habit.groupType')}
                 </button>
               ))}
             </div>
           </fieldset>
           {type === 'group' ? (
             <div className="field">
-              <label htmlFor="habit-group">Grupo</label>
+              <label htmlFor="habit-group">{t('habit.group')}</label>
               <select
                 id="habit-group"
                 name="group"
@@ -110,7 +107,7 @@ export default function CreateHabitPage() {
                 aria-describedby={errors.group ? 'habit-group-error' : undefined}
                 onChange={(event) => setGroupId(event.target.value)}
               >
-                <option value="">Elige un grupo</option>
+                <option value="">{t('habit.chooseGroup')}</option>
                 {managedGroups.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
@@ -119,7 +116,7 @@ export default function CreateHabitPage() {
               </select>
               {errors.group ? (
                 <p className="field-error" id="habit-group-error" role="alert">
-                  {errors.group}
+                  {t(errors.group)}
                 </p>
               ) : null}
             </div>
@@ -127,18 +124,18 @@ export default function CreateHabitPage() {
           <TextField
             id="habit-frequency"
             name="frequency"
-            label="Frecuencia"
+            label={t('habit.frequency')}
             value={frequency}
-            placeholder="Diario"
+            placeholder={t('habit.dailyPlaceholder')}
             autoComplete="off"
             onChange={(event) => setFrequency(event.target.value)}
-            error={errors.frequency}
+            error={errors.frequency ? t(errors.frequency) : undefined}
           />
           <div className="create-habit-actions">
-            <Button type="submit">Crear hábito</Button>
+            <Button type="submit">{t('habit.create')}</Button>
             {notice ? (
               <p className="auth-notice" role="status">
-                {notice}
+                {t(notice)}
               </p>
             ) : null}
           </div>

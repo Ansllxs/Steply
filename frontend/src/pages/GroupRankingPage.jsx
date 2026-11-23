@@ -2,8 +2,10 @@ import { Link, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import celebration from '../assets/celebracion.png'
 import { findGroup } from '../data/groups'
+import { usePreferences } from '../state/usePreferences'
 
 export default function GroupRankingPage() {
+  const { t } = usePreferences()
   const { id } = useParams()
   const group = findGroup(id)
 
@@ -11,12 +13,12 @@ export default function GroupRankingPage() {
     return (
       <main className="sheet">
         <div className="sheet-frame">
-          <Link className="auth-back" to="/groups" aria-label="Volver">
+          <Link className="auth-back" to="/groups" aria-label={t('common.back')}>
             <img src={backIcon} alt="" width="22" height="22" />
           </Link>
-          <p className="dashboard-kicker">PUNTOS ACUMULADOS</p>
-          <h1>Ranking</h1>
-          <p className="dashboard-stats">Este grupo no está en los datos de ejemplo.</p>
+          <p className="dashboard-kicker">{t('ranking.kicker')}</p>
+          <h1>{t('ranking.title')}</h1>
+          <p className="dashboard-stats">{t('group.missingLead')}</p>
         </div>
       </main>
     )
@@ -29,14 +31,14 @@ export default function GroupRankingPage() {
   return (
     <main className="sheet group-ranking">
       <div className="sheet-frame">
-        <Link className="auth-back" to={`/groups/${group.id}`} aria-label="Volver">
+        <Link className="auth-back" to={`/groups/${group.id}`} aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">PUNTOS ACUMULADOS</p>
-        <h1>Ranking</h1>
+        <p className="dashboard-kicker">{t('ranking.kicker')}</p>
+        <h1>{t('ranking.title')}</h1>
         <p className="dashboard-stats">
           {ranking.length
-            ? `${group.name} · ${ranking.length} posiciones de ejemplo`
+            ? t('ranking.sample', { name: group.name, count: ranking.length })
             : group.name}
         </p>
         {ranking.length ? (
@@ -50,12 +52,12 @@ export default function GroupRankingPage() {
                   {entry.place}
                 </span>
                 <span className="rank-name">{entry.name}</span>
-                <span className="rank-points">{entry.points} pts</span>
+                <span className="rank-points">{t('ranking.points', { count: entry.points })}</span>
               </li>
             ))}
           </ol>
         ) : (
-          <p className="empty-note">El ranking aparecerá cuando se registren puntos</p>
+          <p className="empty-note">{t('ranking.empty')}</p>
         )}
         <div className="celebration" aria-hidden="true">
           <img src={celebration} alt="" width="124" height="121" />

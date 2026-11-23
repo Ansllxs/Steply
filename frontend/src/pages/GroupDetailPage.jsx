@@ -4,8 +4,10 @@ import bunny from '../assets/saludo.png'
 import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import { findGroup } from '../data/groups'
+import { usePreferences } from '../state/usePreferences'
 
 export default function GroupDetailPage() {
+  const { t } = usePreferences()
   const { id } = useParams()
   const group = findGroup(id)
 
@@ -13,12 +15,12 @@ export default function GroupDetailPage() {
     return (
       <main className="sheet">
         <div className="sheet-frame">
-          <Link className="auth-back" to="/groups" aria-label="Volver">
+          <Link className="auth-back" to="/groups" aria-label={t('common.back')}>
             <img src={backIcon} alt="" width="22" height="22" />
           </Link>
-          <p className="dashboard-kicker">DETALLE DEL GRUPO</p>
-          <h1>Grupo no disponible</h1>
-          <p className="dashboard-stats">Este grupo no está en los datos de ejemplo.</p>
+          <p className="dashboard-kicker">{t('group.kicker')}</p>
+          <h1>{t('group.missing')}</h1>
+          <p className="dashboard-stats">{t('group.missingLead')}</p>
         </div>
       </main>
     )
@@ -27,28 +29,28 @@ export default function GroupDetailPage() {
   return (
     <main className="sheet group-detail">
       <div className="sheet-frame">
-        <Link className="auth-back" to="/groups" aria-label="Volver">
+        <Link className="auth-back" to="/groups" aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">DETALLE DEL GRUPO</p>
+        <p className="dashboard-kicker">{t('group.kicker')}</p>
         <h1>{group.name}</h1>
         <p className="dashboard-stats">
-          {group.members} {group.members === 1 ? 'integrante' : 'integrantes'}
+          {t(group.members === 1 ? 'groups.member' : 'groups.members', { count: group.members })}
         </p>
-        <section className="motivation" aria-label="Mensaje de Steply">
+        <section className="motivation" aria-label={t('common.steplyMessage')}>
           <div className="motivation-avatar">
             <img className="motivation-bunny" src={bunny} alt="" width="69" height="78" />
           </div>
           <div>
-            <h2>Cada paso cuenta</h2>
+            <h2>{t('group.motivation')}</h2>
             <p>
-              Hábitos compartidos y
+              {t('group.motivationLine1')}
               <br />
-              progreso en equipo.
+              {t('group.motivationLine2')}
             </p>
           </div>
         </section>
-        <h2 className="sheet-section">Hábitos del grupo</h2>
+        <h2 className="sheet-section">{t('group.habits')}</h2>
         {group.habits.length ? (
           <ul className="habit-list">
             {group.habits.map((habit) => (
@@ -56,13 +58,13 @@ export default function GroupDetailPage() {
             ))}
           </ul>
         ) : (
-          <p className="empty-note">Todavía no hay hábitos grupales.</p>
+          <p className="empty-note">{t('group.empty')}</p>
         )}
         <div className="group-detail-actions">
-          <Button to={`/groups/${group.id}/ranking`}>Ver ranking</Button>
+          <Button to={`/groups/${group.id}/ranking`}>{t('group.ranking')}</Button>
           {group.isAdmin ? (
             <Button variant="secondary" to={`/groups/${group.id}/manage`}>
-              Gestionar hábitos del grupo
+              {t('group.manage')}
             </Button>
           ) : null}
         </div>

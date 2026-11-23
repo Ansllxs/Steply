@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
-import { checkInDateLabel, habitDetails, habits } from '../data/habits'
+import { habitDetails, habits } from '../data/habits'
+import { usePreferences } from '../state/usePreferences'
 
 const choices = [
-  { id: 'yes', label: 'Sí, lo completé' },
-  { id: 'no', label: 'No lo completé' },
+  { id: 'yes', label: 'check.yes' },
+  { id: 'no', label: 'check.no' },
 ]
 
 export default function CheckInPage() {
+  const { t } = usePreferences()
   const { id } = useParams()
   const location = useLocation()
   const maxEvidenceBytes = 5 * 1024 * 1024
@@ -25,11 +27,12 @@ export default function CheckInPage() {
     return (
       <main className="sheet">
         <div className="sheet-frame">
-          <Link className="auth-back" to="/habits" aria-label="Volver">
+          <Link className="auth-back" to="/habits" aria-label={t('common.back')}>
             <img src={backIcon} alt="" width="22" height="22" />
           </Link>
-          <p className="dashboard-kicker">CUMPLIMIENTO</p>
-          <h1>Hábito no disponible</h1>
+          <p className="dashboard-kicker">{t('check.kicker')}</p>
+          <h1>{t('detail.missing')}</h1>
+          <p className="dashboard-stats">{t('detail.missingLead')}</p>
         </div>
       </main>
     )
@@ -46,14 +49,14 @@ export default function CheckInPage() {
 
     if (!file.type.startsWith('image/')) {
       setFileName('')
-      setFileError('Elige una imagen.')
+      setFileError('check.imageType')
       event.target.value = ''
       return
     }
 
     if (file.size > maxEvidenceBytes) {
       setFileName('')
-      setFileError('La imagen debe pesar 5 MB o menos.')
+      setFileError('check.imageSize')
       event.target.value = ''
       return
     }
@@ -66,7 +69,7 @@ export default function CheckInPage() {
     event.preventDefault()
 
     if (!choice) {
-      setError('Elige una opción.')
+      setError('check.choose')
       setNotice('')
       return
     }
@@ -78,15 +81,15 @@ export default function CheckInPage() {
 
     setError('')
     setNotice(
-      'Tu información se ve bien. Conectaremos el guardado del registro cuando el servidor esté disponible.',
+      'check.notice',
     )
   }
 
   const statusLabels = {
-    yes: 'Seleccionado · Completado',
-    no: 'Seleccionado · Sin completar',
+    yes: 'check.selectedYes',
+    no: 'check.selectedNo',
   }
-  const status = error || (choice ? statusLabels[choice] : 'Elige una opción.')
+  const status = error || (choice ? statusLabels[choice] : 'check.choose')
 
   return (
     <main className="sheet">
@@ -95,19 +98,19 @@ export default function CheckInPage() {
           className="auth-back"
           to={`/habits/${habit.id}`}
           state={location.state}
-          aria-label="Volver"
+          aria-label={t('common.back')}
         >
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">CUMPLIMIENTO</p>
-        <h1>Registro de hoy</h1>
+        <p className="dashboard-kicker">{t('check.kicker')}</p>
+        <h1>{t('check.title')}</h1>
         <p className="dashboard-stats">
-          {habit.title} · {checkInDateLabel}
+          {habit.title} · {t('check.date')}
         </p>
-        <h2 className="sheet-section sheet-question">¿Completaste tu hábito?</h2>
+        <h2 className="sheet-section sheet-question">{t('check.question')}</h2>
         <div className="check-halo" aria-hidden="true" />
         <form className="check-form" onSubmit={handleSubmit} noValidate>
-          <div className="choice-group" role="group" aria-label="Cumplimiento">
+          <div className="choice-group" role="group" aria-label={t('check.group')}>
             {choices.map((item) => {
               const selected = choice === item.id
               const className = [
@@ -129,7 +132,7 @@ export default function CheckInPage() {
                     setError('')
                   }}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </button>
               )
             })}
@@ -137,7 +140,7 @@ export default function CheckInPage() {
               className={error ? 'choice-status is-alert' : 'choice-status'}
               role={error ? 'alert' : undefined}
             >
-              {status}
+              {t(status)}
             </p>
           </div>
           <div className="evidence-upload">
@@ -149,20 +152,20 @@ export default function CheckInPage() {
               onChange={handleFile}
             />
             <label className="btn btn-outline" htmlFor="evidence-file">
-              + Agregar evidencia (opcional)
+              {t('check.evidence')}
             </label>
             {fileName ? <p className="file-name">{fileName}</p> : null}
             {fileError ? (
               <p className="file-name is-alert" role="alert">
-                {fileError}
+                {t(fileError)}
               </p>
             ) : null}
           </div>
           <div className="check-save">
-            <Button type="submit">Guardar registro</Button>
+            <Button type="submit">{t('check.save')}</Button>
             {notice ? (
               <p className="auth-notice" role="status">
-                {notice}
+                {t(notice)}
               </p>
             ) : null}
           </div>

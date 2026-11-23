@@ -11,16 +11,17 @@ import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import ProfilePhotoEditor from '../components/ProfilePhotoEditor'
 import {
-  localProfileNotice,
-  logoutNotice,
   maxProfilePhotoBytes,
   profileActions,
   profilePhotoTypes,
 } from '../data/profile'
+import { translatePhrase } from '../i18n/phrases'
+import { usePreferences } from '../state/usePreferences'
 import { useProfile } from '../state/useProfile'
 import { loadImage } from '../utils/cropImage'
 
 export default function ProfilePage() {
+  const { language, t } = usePreferences()
   const { profile, photoUrl, updatePhoto } = useProfile()
   const location = useLocation()
   const pendingUrlRef = useRef('')
@@ -55,13 +56,13 @@ export default function ProfilePage() {
     if (!file) return
 
     if (!profilePhotoTypes.includes(file.type)) {
-      setPhotoError('Elige una imagen JPEG, PNG o WebP.')
+      setPhotoError('profile.photoType')
       setPhotoNotice('')
       return
     }
 
     if (file.size > maxProfilePhotoBytes) {
-      setPhotoError('La imagen debe pesar 5 MB o menos.')
+      setPhotoError('profile.photoSize')
       setPhotoNotice('')
       return
     }
@@ -72,7 +73,7 @@ export default function ProfilePage() {
       await loadImage(url)
     } catch {
       URL.revokeObjectURL(url)
-      setPhotoError('No se pudo leer la imagen. Elige otra.')
+      setPhotoError('profile.photoRead')
       setPhotoNotice('')
       return
     }
@@ -83,7 +84,7 @@ export default function ProfilePage() {
 
   function handleAccept(blob) {
     updatePhoto(blob)
-    setPhotoNotice('Foto lista')
+    setPhotoNotice('profile.photoReady')
     setPhotoError('')
     closeEditor()
   }
@@ -91,7 +92,7 @@ export default function ProfilePage() {
   return (
     <main className="dashboard profile-page">
       <div className="dashboard-frame">
-        <DashboardHeader label="PERFIL" />
+        <DashboardHeader label={t('profile.wordmark')} />
         <section className="profile-identity">
           <div className="profile-avatar">
             <input
@@ -109,7 +110,7 @@ export default function ProfilePage() {
               )}
             </label>
             <label className="profile-edit" htmlFor="profile-photo-input">
-              <span className="visually-hidden">Cambiar foto de perfil</span>
+              <span className="visually-hidden">{t('profile.changePhoto')}</span>
               <img src={pencilIcon} alt="" width="16" height="16" />
             </label>
           </div>
@@ -120,17 +121,17 @@ export default function ProfilePage() {
         </section>
         {location.state?.savedLocally ? (
           <p className="auth-notice profile-save-note" role="status">
-            {localProfileNotice}
+            {t('profile.savedLocally')}
           </p>
         ) : null}
         {photoError ? (
           <p className="field-error" role="alert">
-            {photoError}
+            {t(photoError)}
           </p>
         ) : null}
         {photoNotice ? (
           <p className="profile-photo-status" role="status">
-            {photoNotice}
+            {t(photoNotice)}
           </p>
         ) : null}
         {pendingUrl ? (
@@ -146,8 +147,8 @@ export default function ProfilePage() {
               <img src={flameIcon} alt="" width="18" height="18" />
             </span>
             <span>
-              <strong>{profile.streak}</strong>
-              <span>{profile.streakCaption}</span>
+              <strong>{translatePhrase(language, profile.streak)}</strong>
+              <span>{t('profile.streakCaption')}</span>
             </span>
           </article>
           <article className="profile-stat">
@@ -156,7 +157,7 @@ export default function ProfilePage() {
             </span>
             <span>
               <strong>{profile.points}</strong>
-              <span>{profile.pointsCaption}</span>
+              <span>{t('profile.pointsCaption')}</span>
             </span>
           </article>
         </div>
@@ -180,15 +181,15 @@ export default function ProfilePage() {
           <Button
             variant="secondary"
             onClick={() => {
-              setNotice(logoutNotice)
+              setNotice('profile.logoutNotice')
             }}
           >
             <img src={logoutIcon} alt="" width="18" height="18" />
-            Cerrar sesión
+            {t('profile.logout')}
           </Button>
           {notice ? (
             <p className="auth-notice" role="status">
-              {notice}
+              {t(notice)}
             </p>
           ) : null}
         </div>

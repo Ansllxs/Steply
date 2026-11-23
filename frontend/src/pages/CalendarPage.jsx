@@ -3,31 +3,9 @@ import backIcon from '../assets/back.svg'
 import BottomNav from '../components/BottomNav'
 import HabitCard from '../components/HabitCard'
 import { calendarHabits, calendarStart, registeredDates } from '../data/habits'
+import { usePreferences } from '../state/usePreferences'
 
-const weekLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-const monthNames = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
-const weekdayNames = [
-  'Domingo',
-  'Lunes',
-  'Martes',
-  'Miércoles',
-  'Jueves',
-  'Viernes',
-  'Sábado',
-]
+const weekIds = ['l', 'm', 'x', 'j', 'v', 's', 'd']
 
 function dateKey(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -51,6 +29,7 @@ function buildCells(year, month) {
 }
 
 export default function CalendarPage() {
+  const { t } = usePreferences()
   const [year, setYear] = useState(calendarStart.year)
   const [month, setMonth] = useState(calendarStart.month)
   const [day, setDay] = useState(calendarStart.day)
@@ -70,34 +49,34 @@ export default function CalendarPage() {
   return (
     <main className="sheet">
       <div className="sheet-frame sheet-calendar">
-        <p className="dashboard-kicker">HISTORIAL</p>
-        <h1>Calendario</h1>
-        <p className="dashboard-stats">Consulta tus registros diarios.</p>
-        <section className="month-card" aria-label="Mes y días">
+        <p className="dashboard-kicker">{t('calendar.kicker')}</p>
+        <h1>{t('calendar.title')}</h1>
+        <p className="dashboard-stats">{t('calendar.lead')}</p>
+        <section className="month-card" aria-label={t('calendar.region')}>
           <div className="month-header">
             <button
               type="button"
               className="auth-back"
-              aria-label="Mes anterior"
+              aria-label={t('calendar.previous')}
               onClick={() => changeMonth(-1)}
             >
               <img src={backIcon} alt="" width="22" height="22" />
             </button>
             <p className="month-title">
-              {monthNames[month]} {year}
+              {t(`month.${month}`)} {year}
             </p>
             <button
               type="button"
               className="auth-back month-next"
-              aria-label="Mes siguiente"
+              aria-label={t('calendar.next')}
               onClick={() => changeMonth(1)}
             >
               <img src={backIcon} alt="" width="22" height="22" />
             </button>
           </div>
           <div className="calendar-week" aria-hidden="true">
-            {weekLabels.map((label) => (
-              <span key={label}>{label}</span>
+            {weekIds.map((id) => (
+              <span key={id}>{t(`weekday.short.${id}`)}</span>
             ))}
           </div>
           <div className="calendar-grid">
@@ -123,7 +102,7 @@ export default function CalendarPage() {
                   type="button"
                   className={className}
                   aria-pressed={selected}
-                  aria-label={`${value} de ${monthNames[month]}`}
+                  aria-label={t('calendar.day', { day: value, month: t(`month.${month}`) })}
                   onClick={() => setDay(value)}
                 >
                   {value}
@@ -134,12 +113,12 @@ export default function CalendarPage() {
         </section>
         <p className="calendar-legend">
           <span className="legend-swatch is-registered" aria-hidden="true" />
-          Lila · Con registro
+          {t('calendar.legendRecorded')}
           <span className="legend-swatch" aria-hidden="true" />
-          Claro · Sin registro
+          {t('calendar.legendEmpty')}
         </p>
         <h2 className="sheet-section">
-          {weekdayNames[headingDate.getDay()]} {day} · Hábitos del día
+          {t('calendar.dayHabits', { weekday: t(`weekday.${headingDate.getDay()}`), day })}
         </h2>
         {habitsForDay.length ? (
           <ul className="habit-list calendar-habits">
@@ -148,10 +127,10 @@ export default function CalendarPage() {
             ))}
           </ul>
         ) : (
-          <p className="empty-note">No hay registros para este día.</p>
+          <p className="empty-note">{t('calendar.empty')}</p>
         )}
       </div>
-      <BottomNav current="Hábitos" />
+      <BottomNav current="habits" />
     </main>
   )
 }

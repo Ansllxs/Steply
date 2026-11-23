@@ -4,6 +4,7 @@ import backIcon from '../assets/back.svg'
 import logo from '../assets/logo.png'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
+import { usePreferences } from '../state/usePreferences'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -11,19 +12,20 @@ function validateLogin(email, password) {
   const errors = {}
 
   if (!email.trim()) {
-    errors.email = 'Ingresa tu correo.'
+    errors.email = 'validation.emailRequired'
   } else if (!emailPattern.test(email.trim())) {
-    errors.email = 'Ingresa un correo válido.'
+    errors.email = 'validation.emailInvalid'
   }
 
   if (!password) {
-    errors.password = 'Ingresa tu contraseña.'
+    errors.password = 'validation.passwordRequired'
   }
 
   return errors
 }
 
 export default function LoginPage() {
+  const { t } = usePreferences()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
@@ -39,15 +41,13 @@ export default function LoginPage() {
       return
     }
 
-    setNotice(
-      'Tu información se ve bien. Conectaremos el inicio de sesión cuando el servidor esté disponible.',
-    )
+    setNotice('login.notice')
   }
 
   return (
     <main className="auth">
       <div className="auth-frame">
-        <Link className="auth-back" to="/" aria-label="Volver">
+        <Link className="auth-back" to="/" aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
         <img
@@ -57,18 +57,18 @@ export default function LoginPage() {
           width="179"
           height="119"
         />
-        <h1>¡Hola!</h1>
-        <p className="auth-lead">Qué bueno verte de nuevo.</p>
+        <h1>{t('login.hello')}</h1>
+        <p className="auth-lead">{t('login.lead')}</p>
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <TextField
             id="login-email"
             name="email"
-            label="Correo"
+            label={t('login.email')}
             type="email"
             value={email}
             placeholder="angie@ejemplo.com"
             autoComplete="email"
-            error={errors.email}
+            error={errors.email ? t(errors.email) : undefined}
             onChange={(event) => {
               setEmail(event.target.value)
               setNotice('')
@@ -78,12 +78,12 @@ export default function LoginPage() {
           <TextField
             id="login-password"
             name="password"
-            label="Contraseña"
+            label={t('login.password')}
             type="password"
             value={password}
             placeholder="••••••••"
             autoComplete="current-password"
-            error={errors.password}
+            error={errors.password ? t(errors.password) : undefined}
             onChange={(event) => {
               setPassword(event.target.value)
               setNotice('')
@@ -91,14 +91,14 @@ export default function LoginPage() {
             }}
           />
           <div className="auth-actions">
-            <Button type="submit">Iniciar sesión</Button>
+            <Button type="submit">{t('login.submit')}</Button>
             {notice ? (
               <p className="auth-notice" role="status">
-                {notice}
+                {t(notice)}
               </p>
             ) : null}
             <Button to="/register" variant="secondary">
-              Crear una cuenta
+              {t('login.create')}
             </Button>
           </div>
         </form>

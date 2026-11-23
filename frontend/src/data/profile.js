@@ -5,6 +5,7 @@ export const profilePhotoTypes = ['image/jpeg', 'image/png', 'image/webp']
 export const profile = {
   name: 'Angie Alpízar',
   username: 'angiealpizar',
+  email: 'angie@ejemplo.com',
   streak: '12 días',
   streakCaption: 'Racha activa',
   points: '1 250 pts',
@@ -38,7 +39,7 @@ export const profileActions = [
     title: 'Ajustes',
     status: 'Notificaciones y preferencias',
     icon: 'settings',
-    notice: 'Ajustes todavía no está disponible.',
+    to: '/settings',
   },
 ]
 
@@ -63,15 +64,15 @@ export function validateProfileIdentity(name, username) {
   const trimmedUsername = username.trim()
 
   if (!trimmedName) {
-    errors.name = 'Ingresa tu nombre.'
+    errors.name = 'validation.nameRequired'
   }
 
   if (!trimmedUsername) {
-    errors.username = 'Ingresa tu nombre de usuario.'
+    errors.username = 'validation.usernameRequired'
   } else if (/\s/.test(username)) {
-    errors.username = 'El nombre de usuario no puede contener espacios.'
+    errors.username = 'validation.usernameSpaces'
   } else if (!USERNAME_PATTERN.test(trimmedUsername)) {
-    errors.username = `Usa solo letras, números, guiones bajos y puntos (máximo ${USERNAME_MAX_LENGTH}).`
+    errors.username = 'validation.usernameCharset'
   }
 
   return errors

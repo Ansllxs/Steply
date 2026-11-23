@@ -13,6 +13,7 @@ import HabitsPage from './pages/HabitsPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import EditProfilePage from './pages/EditProfilePage'
+import SettingsPage from './pages/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
 
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/groups/:id/manage" element={<ManageGroupHabitsPage />} />
       <Route path="/groups/:id" element={<GroupDetailPage />} />
       <Route path="/profile/edit" element={<EditProfilePage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   )

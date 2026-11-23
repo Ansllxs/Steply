@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import Button from './Button'
+import { usePreferences } from '../state/usePreferences'
 import { cropImageToBlob } from '../utils/cropImage'
 
 export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
+  const { t } = usePreferences()
   const titleId = useId()
   const dialogRef = useRef(null)
   const onCancelRef = useRef(onCancel)
@@ -74,7 +76,7 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
       const blob = await cropImageToBlob(imageUrl, pixels)
       onAccept(blob)
     } catch {
-      setError('No se pudo recortar la imagen. Inténtalo de nuevo.')
+      setError('profile.photoCropError')
       setBusy(false)
     }
   }
@@ -93,8 +95,8 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <h2 id={titleId}>Editar foto de perfil</h2>
-        <p>Mueve y acerca la foto. Esta vista previa se queda en el dispositivo.</p>
+        <h2 id={titleId}>{t('profile.cropTitle')}</h2>
+        <p>{t('profile.cropLead')}</p>
         <div className="photo-crop-stage">
           <Cropper
             image={imageUrl}
@@ -116,12 +118,12 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
               },
             }}
             cropperProps={{
-              'aria-label': 'Área de recorte. Arrastra la foto o usa las flechas para moverla.',
+              'aria-label': t('profile.cropArea'),
             }}
           />
         </div>
         <label className="photo-crop-zoom">
-          Zoom
+          {t('profile.zoom')}
           <input
             type="range"
             min="1"
@@ -136,15 +138,15 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
         </label>
         {error ? (
           <p className="field-error" role="alert">
-            {error}
+            {t(error)}
           </p>
         ) : null}
         <div className="photo-crop-actions">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleAccept} disabled={!pixels || busy}>
-            Aceptar
+            {t('profile.accept')}
           </Button>
         </div>
       </div>

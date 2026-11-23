@@ -20,12 +20,12 @@
 
 .btn-primary {
   background: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-on-primary);
 }
 
 .btn-primary:hover {
-  background: var(--color-dark);
-  color: var(--color-white);
+  background: var(--color-primary-hover);
+  color: var(--color-on-primary);
 }
 
 .btn-secondary {

@@ -4,8 +4,10 @@ import backIcon from '../assets/back.svg'
 import bunny from '../assets/saludo.png'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
+import { usePreferences } from '../state/usePreferences'
 
 export default function CreateGroupPage() {
+  const { t } = usePreferences()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -14,26 +16,24 @@ export default function CreateGroupPage() {
     event.preventDefault()
 
     if (!name.trim()) {
-      setError('Ingresa el nombre del grupo.')
+      setError('validation.groupName')
       setNotice('')
       return
     }
 
     setError('')
-    setNotice(
-      'Tu información se ve bien. Conectaremos la creación del grupo cuando el servidor esté disponible.',
-    )
+    setNotice('groupCreate.notice')
   }
 
   return (
     <main className="sheet create-group">
       <div className="sheet-frame">
-        <Link className="auth-back" to="/groups" aria-label="Volver">
+        <Link className="auth-back" to="/groups" aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
-        <p className="dashboard-kicker">NUEVO GRUPO</p>
-        <h1>Crear grupo</h1>
-        <p className="dashboard-stats">Empieza una rutina en equipo.</p>
+        <p className="dashboard-kicker">{t('groupCreate.kicker')}</p>
+        <h1>{t('groupCreate.title')}</h1>
+        <p className="dashboard-stats">{t('groupCreate.lead')}</p>
         <div className="create-group-art">
           <img src={bunny} alt="" width="117" height="132" />
         </div>
@@ -41,22 +41,22 @@ export default function CreateGroupPage() {
           <TextField
             id="group-name"
             name="name"
-            label="Nombre del grupo"
+            label={t('groupCreate.name')}
             value={name}
             placeholder="Compu squad"
             autoComplete="off"
             onChange={(event) => setName(event.target.value)}
-            error={error}
+            error={error ? t(error) : undefined}
           />
-          <p className="create-group-help">Al crear el grupo, serás su administrador.</p>
+          <p className="create-group-help">{t('groupCreate.help')}</p>
           <div className="create-group-actions">
-            <Button type="submit">Crear grupo</Button>
+            <Button type="submit">{t('groupCreate.submit')}</Button>
             <Button variant="secondary" to="/groups">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             {notice ? (
               <p className="auth-notice" role="status">
-                {notice}
+                {t(notice)}
               </p>
             ) : null}
           </div>

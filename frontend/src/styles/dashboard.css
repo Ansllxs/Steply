@@ -26,7 +26,7 @@
 
 .dashboard-wordmark {
   margin: 0;
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-size: 11px;
   font-weight: 500;
   line-height: 16px;
@@ -35,7 +35,7 @@
 
 .dashboard-kicker {
   margin: 22px 0 0;
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;
@@ -192,7 +192,7 @@ button.habit-card:hover {
 }
 
 .habit-card-progress {
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;

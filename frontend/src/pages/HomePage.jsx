@@ -1,8 +1,10 @@
 import bunny from '../assets/corriendo.png'
 import logo from '../assets/logo.png'
 import Button from '../components/Button'
+import { usePreferences } from '../state/usePreferences'
 
 export default function HomePage() {
+  const { t } = usePreferences()
   return (
     <main className="welcome">
       <div className="welcome-inner">
@@ -25,21 +27,21 @@ export default function HomePage() {
             height="254"
           />
         </div>
-        <p className="welcome-kicker">ESTE ES TU PRIMER PASO</p>
+        <p className="welcome-kicker">{t('welcome.kicker')}</p>
         <h1>
-          Pequeños pasos,
+          {t('welcome.titleLine1')}
           <br />
-          grandes cambios
+          {t('welcome.titleLine2')}
         </h1>
         <p className="welcome-copy">
-          Crea hábitos a tu ritmo y celebra
+          {t('welcome.copyLine1')}
           <br />
-          tu progreso con Steply.
+          {t('welcome.copyLine2')}
         </p>
         <div className="welcome-actions">
-          <Button to="/register">Comenzar</Button>
+          <Button to="/register">{t('welcome.start')}</Button>
           <Button to="/login" variant="secondary">
-            Ya tengo una cuenta
+            {t('welcome.login')}
           </Button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import bunny from '../assets/corriendo.png'
 import logo from '../assets/logo.png'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
+import { usePreferences } from '../state/usePreferences'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -12,23 +13,24 @@ function validateRegistration(name, email, password) {
   const errors = {}
 
   if (!name.trim()) {
-    errors.name = 'Ingresa tu nombre.'
+    errors.name = 'validation.nameRequired'
   }
 
   if (!email.trim()) {
-    errors.email = 'Ingresa tu correo.'
+    errors.email = 'validation.emailRequired'
   } else if (!emailPattern.test(email.trim())) {
-    errors.email = 'Ingresa un correo válido.'
+    errors.email = 'validation.emailInvalid'
   }
 
   if (!password) {
-    errors.password = 'Ingresa tu contraseña.'
+    errors.password = 'validation.passwordRequired'
   }
 
   return errors
 }
 
 export default function RegisterPage() {
+  const { t } = usePreferences()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,15 +47,13 @@ export default function RegisterPage() {
       return
     }
 
-    setNotice(
-      'Tu información se ve bien. Conectaremos el registro cuando el servidor esté disponible.',
-    )
+    setNotice('register.notice')
   }
 
   return (
     <main className="auth register">
       <div className="auth-frame">
-        <Link className="auth-back" to="/" aria-label="Volver">
+        <Link className="auth-back" to="/" aria-label={t('common.back')}>
           <img src={backIcon} alt="" width="22" height="22" />
         </Link>
         <img
@@ -72,17 +72,17 @@ export default function RegisterPage() {
             height="98"
           />
         </div>
-        <h1>Crea tu cuenta</h1>
-        <p className="auth-lead">Empieza con un pequeño paso.</p>
+        <h1>{t('register.title')}</h1>
+        <p className="auth-lead">{t('register.lead')}</p>
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <TextField
             id="register-name"
             name="name"
-            label="Nombre"
+            label={t('register.name')}
             value={name}
             placeholder="Angie"
             autoComplete="name"
-            error={errors.name}
+            error={errors.name ? t(errors.name) : undefined}
             onChange={(event) => {
               setName(event.target.value)
               setNotice('')
@@ -92,12 +92,12 @@ export default function RegisterPage() {
           <TextField
             id="register-email"
             name="email"
-            label="Correo"
+            label={t('login.email')}
             type="email"
             value={email}
             placeholder="angie@ejemplo.com"
             autoComplete="email"
-            error={errors.email}
+            error={errors.email ? t(errors.email) : undefined}
             onChange={(event) => {
               setEmail(event.target.value)
               setNotice('')
@@ -107,12 +107,12 @@ export default function RegisterPage() {
           <TextField
             id="register-password"
             name="password"
-            label="Contraseña"
+            label={t('login.password')}
             type="password"
             value={password}
             placeholder="••••••••"
             autoComplete="new-password"
-            error={errors.password}
+            error={errors.password ? t(errors.password) : undefined}
             onChange={(event) => {
               setPassword(event.target.value)
               setNotice('')
@@ -120,16 +120,16 @@ export default function RegisterPage() {
             }}
           />
           <div className="auth-actions">
-            <Button type="submit">Registrarme</Button>
+            <Button type="submit">{t('register.submit')}</Button>
             {notice ? (
               <p className="auth-notice" role="status">
-                {notice}
+                {t(notice)}
               </p>
             ) : null}
           </div>
         </form>
         <Link className="register-login" to="/login">
-          Ya tengo cuenta · Iniciar sesión
+          {t('register.login')}
         </Link>
       </div>
     </main>
