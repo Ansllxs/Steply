@@ -1,23 +1,16 @@
 import express from 'express';
 import cors from 'cors';
-import { prisma } from '@steply/database';
+import rutas from './routes/index.js';
+import { rutaNoEncontrada, manejadorErrores } from './middlewares/errores.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/salud', (req, res) => {
-  res.json({ ok: true, mensaje: 'Steply backend funcionando' });
-});
+app.use('/api', rutas);
 
-// Ruta temporal para comprobar la conexión con la base de datos
-app.get('/api/salud-bd', async (req, res, next) => {
-  try {
-    const usuarios = await prisma.usuario.count();
-    res.json({ ok: true, usuarios });
-  } catch (err) {
-    next(err);
-  }
-});
+// Estos dos van siempre al final
+app.use(rutaNoEncontrada);
+app.use(manejadorErrores);
 
 export default app;
