@@ -8,7 +8,7 @@ const items = [
   { label: 'Inicio', icon: homeIcon, to: '/dashboard' },
   { label: 'Hábitos', icon: habitsIcon, to: '/habits' },
   { label: 'Grupos', icon: groupsIcon, to: '/groups' },
-  { label: 'Perfil', icon: profileIcon },
+  { label: 'Perfil', icon: profileIcon, to: '/profile' },
 ]
 
 export default function BottomNav({ current }) {
@@ -30,7 +30,10 @@ export default function BottomNav({ current }) {
               key={item.label}
               to={item.to}
               end={
-                item.to === '/dashboard' || item.to === '/habits' || item.to === '/groups'
+                item.to === '/dashboard' ||
+                item.to === '/habits' ||
+                item.to === '/groups' ||
+                item.to === '/profile'
               }
               className={({ isActive }) =>
                 (current ? current === item.label : isActive)

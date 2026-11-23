@@ -142,8 +142,10 @@
   cursor: pointer;
 }
 
-.habit-card:hover {
+.habit-card:hover,
+button.habit-card:hover {
   background: var(--color-white);
+  color: inherit;
 }
 
 .habit-card-icon {

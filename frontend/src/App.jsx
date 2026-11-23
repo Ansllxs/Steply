@@ -12,6 +12,7 @@ import ManageGroupHabitsPage from './pages/ManageGroupHabitsPage'
 import HabitsPage from './pages/HabitsPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/groups/:id/ranking" element={<GroupRankingPage />} />
       <Route path="/groups/:id/manage" element={<ManageGroupHabitsPage />} />
       <Route path="/groups/:id" element={<GroupDetailPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   )
 }

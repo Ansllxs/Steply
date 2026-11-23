@@ -1,6 +1,6 @@
 import logo from '../assets/logo.png'
 
-export default function DashboardHeader() {
+export default function DashboardHeader({ label = 'STEPLY' }) {
   return (
     <header className="dashboard-header">
       <img
@@ -10,7 +10,7 @@ export default function DashboardHeader() {
         width="52"
         height="34"
       />
-      <p className="dashboard-wordmark">STEPLY</p>
+      <p className="dashboard-wordmark">{label}</p>
     </header>
   )
 }
