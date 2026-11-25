@@ -18,7 +18,7 @@ export const reglasEditarPerfil = [
 ];
 
 export const reglasBuscar = [
-  query('buscar').optional().isString().trim(),
+  query('buscar').optional().isString().trim().isLength({ max: 30 }).withMessage('La búsqueda admite máximo 30 caracteres'),
 ];
 
 export const reglaIdUsuario = [

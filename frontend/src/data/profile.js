@@ -28,6 +28,13 @@ export const profileActions = [
     to: '/groups',
   },
   {
+    id: 'friends',
+    title: 'Mis amigos',
+    status: 'Busca personas y revisa solicitudes',
+    icon: 'groups',
+    to: '/friends',
+  },
+  {
     id: 'edit',
     title: 'Editar perfil',
     status: 'Actualiza tu información',

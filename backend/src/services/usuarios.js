@@ -31,20 +31,39 @@ export async function cambiarFoto(usuario, archivo) {
 }
 
 export async function buscar(usuario, texto = '') {
-  if (texto.length < 2) return [];
-  return prisma.usuario.findMany({
+  const consulta = texto.trim().toLowerCase();
+  if (consulta.length < 2 || consulta.length > 30) return [];
+
+  const usuarios = await prisma.usuario.findMany({
     where: {
       id: { not: usuario.id },
       estado: 'ACTIVA',
-      OR: [
-        { nombre: { contains: texto, mode: 'insensitive' } },
-        { nombreUsuario: { contains: texto.toLowerCase() } },
-        { correo: { contains: texto.toLowerCase() } },
-      ],
+      nombreUsuario: { contains: consulta },
     },
     select: datosPublicos,
-    orderBy: { nombre: 'asc' },
+    orderBy: { nombreUsuario: 'asc' },
     take: 20,
+  });
+  if (!usuarios.length) return [];
+
+  const ids = usuarios.map((item) => item.id);
+  const amistades = await prisma.amistad.findMany({
+    where: {
+      OR: [
+        { solicitanteId: usuario.id, receptorId: { in: ids } },
+        { receptorId: usuario.id, solicitanteId: { in: ids } },
+      ],
+    },
+  });
+
+  return usuarios.map((item) => {
+    const fila = amistades.find((amistad) => amistad.solicitanteId === item.id || amistad.receptorId === item.id);
+    let relacion = null;
+    if (fila?.estado === 'ACEPTADA') relacion = { amistadId: fila.id, estado: 'AMIGOS' };
+    else if (fila?.estado === 'PENDIENTE' && fila.solicitanteId === usuario.id) {
+      relacion = { amistadId: fila.id, estado: 'ENVIADA' };
+    } else if (fila?.estado === 'PENDIENTE') relacion = { amistadId: fila.id, estado: 'RECIBIDA' };
+    return { ...item, relacion };
   });
 }
 

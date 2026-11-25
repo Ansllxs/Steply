@@ -11,6 +11,8 @@ const exact = {
   'Consulta y gestiona tus hábitos': 'profile.habitsHelp',
   'Mis grupos': 'profile.groups',
   'Administra tus grupos y hábitos': 'profile.groupsHelp',
+  'Mis amigos': 'friends.tabFriends',
+  'Busca personas y revisa solicitudes': 'friends.lead',
   'Editar perfil': 'profile.edit',
   'Actualiza tu información': 'profile.editHelp',
   Ajustes: 'profile.settings',

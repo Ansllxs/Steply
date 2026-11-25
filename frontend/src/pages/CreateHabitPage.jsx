@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
-import { administrableGroups } from '../data/groups'
 import { createPersonalHabit, habitErrorText } from '../services/habits'
+import { listGroups } from '../services/social'
 import { usePreferences } from '../state/usePreferences'
 
 const types = [{ id: 'personal' }, { id: 'group' }]
@@ -23,7 +23,7 @@ const dayOptions = [
   { value: 7, id: 'd' },
 ]
 
-function validateHabit(name, frequency, times, days, type) {
+function validateHabit(name, frequency, times, days, type, groupId) {
   const errors = {}
   const trimmed = name.trim()
 
@@ -34,7 +34,7 @@ function validateHabit(name, frequency, times, days, type) {
   else if (frequency === 'SEMANAL' && !times) errors.times = 'validation.times'
   else if (frequency === 'DIAS_ESPECIFICOS' && days.length === 0) errors.days = 'validation.days'
 
-  if (type === 'group') errors.group = 'habit.groupUnavailable'
+  if (type === 'group' && !groupId) errors.group = 'validation.group'
 
   return errors
 }
@@ -44,10 +44,8 @@ export default function CreateHabitPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [params] = useSearchParams()
-  const managedGroups = administrableGroups()
-  const presetGroup = managedGroups.some((group) => group.id === params.get('grupo'))
-    ? params.get('grupo')
-    : ''
+  const presetGroup = params.get('grupo') || ''
+  const [groups, setGroups] = useState([])
   const [name, setName] = useState('')
   const [type, setType] = useState(presetGroup ? 'group' : 'personal')
   const [groupId, setGroupId] = useState(presetGroup)
@@ -58,6 +56,20 @@ export default function CreateHabitPage() {
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const backTo = location.state?.from || (presetGroup ? `/groups/${presetGroup}/manage` : '/habits')
+
+  useEffect(() => {
+    let active = true
+    listGroups()
+      .then((data) => {
+        if (active) setGroups(data.grupos ?? [])
+      })
+      .catch(() => {
+        if (active) setGroups([])
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   function toggleDay(value) {
     setDays((current) => (
@@ -71,14 +83,19 @@ export default function CreateHabitPage() {
     event.preventDefault()
     if (submitting) return
 
-    const nextErrors = validateHabit(name, frequency, times, days, type)
+    const nextErrors = validateHabit(name, frequency, times, days, type, groupId)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
       setNotice('')
       return
     }
 
-    const body = { tipo: 'PERSONAL', nombre: name.trim(), frecuencia: frequency }
+    const body = {
+      tipo: type === 'group' ? 'GRUPAL' : 'PERSONAL',
+      nombre: name.trim(),
+      frecuencia: frequency,
+    }
+    if (type === 'group') body.grupoId = groupId
     if (frequency === 'SEMANAL') body.vecesPorSemana = Number(times)
     if (frequency === 'DIAS_ESPECIFICOS') body.diasSemana = days
 
@@ -158,9 +175,9 @@ export default function CreateHabitPage() {
                 onChange={(event) => setGroupId(event.target.value)}
               >
                 <option value="">{t('habit.chooseGroup')}</option>
-                {managedGroups.map((group) => (
+                {groups.map((group) => (
                   <option key={group.id} value={group.id}>
-                    {group.name}
+                    {group.nombre}
                   </option>
                 ))}
               </select>

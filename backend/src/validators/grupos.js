@@ -27,3 +27,12 @@ export const reglasCambiarRol = [
   ...reglasMiembro,
   body('rol').isIn(['ADMIN', 'INTEGRANTE']).withMessage('El rol debe ser ADMIN o INTEGRANTE'),
 ];
+
+export const reglasInvitar = [
+  ...reglaIdGrupo,
+  body('usuarioId').isUUID().withMessage('Debe indicar el id del usuario'),
+];
+
+export const reglaInvitacion = [
+  param('invitacionId').isUUID().withMessage('El id de la invitación no es válido'),
+];

@@ -1,15 +1,63 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import celebration from '../assets/celebracion.png'
-import { findGroup } from '../data/groups'
+import LoadingIndicator from '../components/LoadingIndicator'
+import { habitErrorText, isHabitId } from '../services/habits'
+import { getGroup, groupRanking } from '../services/social'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 export default function GroupRankingPage() {
   const { t } = usePreferences()
+  const { user } = useAuth()
   const { id } = useParams()
-  const group = findGroup(id)
+  const [result, setResult] = useState({ id: '', status: 'loading', group: null, ranking: [], error: '' })
 
-  if (!group) {
+  useEffect(() => {
+    if (!isHabitId(id)) return undefined
+    let active = true
+    Promise.all([getGroup(id), groupRanking(id)])
+      .then(([groupData, rankingData]) => {
+        if (!active) return
+        setResult({
+          id,
+          status: 'ready',
+          group: groupData.grupo,
+          ranking: rankingData.ranking ?? [],
+          error: '',
+        })
+      })
+      .catch((err) => {
+        if (!active) return
+        const missing = err?.status === 404 || err?.codigo === 'NO_ENCONTRADO'
+        setResult({
+          id,
+          status: missing ? 'missing' : 'error',
+          group: null,
+          ranking: [],
+          error: missing ? '' : habitErrorText(err, t),
+        })
+      })
+    return () => {
+      active = false
+    }
+  }, [id, t])
+
+  const status = !isHabitId(id) ? 'missing' : result.id === id ? result.status : 'loading'
+  const group = result.id === id ? result.group : null
+
+  if (status === 'loading') {
+    return (
+      <main className="sheet">
+        <div className="sheet-frame">
+          <LoadingIndicator />
+        </div>
+      </main>
+    )
+  }
+
+  if (status !== 'ready' || !group) {
     return (
       <main className="sheet">
         <div className="sheet-frame">
@@ -18,15 +66,11 @@ export default function GroupRankingPage() {
           </Link>
           <p className="dashboard-kicker">{t('ranking.kicker')}</p>
           <h1>{t('ranking.title')}</h1>
-          <p className="dashboard-stats">{t('group.missingLead')}</p>
+          <p className="dashboard-stats">{status === 'error' ? result.error : t('group.missingLead')}</p>
         </div>
       </main>
     )
   }
-
-  const ranking = [...group.ranking]
-    .sort((a, b) => b.points - a.points)
-    .map((entry, index) => ({ ...entry, place: index + 1 }))
 
   return (
     <main className="sheet group-ranking">
@@ -37,22 +81,20 @@ export default function GroupRankingPage() {
         <p className="dashboard-kicker">{t('ranking.kicker')}</p>
         <h1>{t('ranking.title')}</h1>
         <p className="dashboard-stats">
-          {ranking.length
-            ? t('ranking.sample', { name: group.name, count: ranking.length })
-            : group.name}
+          {t('ranking.sample', { name: group.nombre, count: result.ranking.length })}
         </p>
-        {ranking.length ? (
+        {result.ranking.length ? (
           <ol className="rank-list">
-            {ranking.map((entry) => (
+            {result.ranking.map((entry) => (
               <li
-                key={entry.place}
-                className={entry.current ? 'rank-row is-current' : 'rank-row'}
+                key={entry.usuario.id}
+                className={entry.usuario.id === user.id ? 'rank-row is-current' : 'rank-row'}
               >
-                <span className={entry.place === 1 ? 'rank-medal is-first' : 'rank-medal'}>
-                  {entry.place}
+                <span className={entry.posicion === 1 ? 'rank-medal is-first' : 'rank-medal'}>
+                  {entry.posicion}
                 </span>
-                <span className="rank-name">{entry.name}</span>
-                <span className="rank-points">{t('ranking.points', { count: entry.points })}</span>
+                <span className="rank-name">{entry.usuario.nombre}</span>
+                <span className="rank-points">{t('ranking.points', { count: entry.puntos })}</span>
               </li>
             ))}
           </ol>

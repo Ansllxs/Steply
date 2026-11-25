@@ -8,6 +8,7 @@ import HabitDetailPage from './pages/HabitDetailPage'
 import CreateGroupPage from './pages/CreateGroupPage'
 import GroupDetailPage from './pages/GroupDetailPage'
 import GroupRankingPage from './pages/GroupRankingPage'
+import FriendsPage from './pages/FriendsPage'
 import GroupsPage from './pages/GroupsPage'
 import ManageGroupHabitsPage from './pages/ManageGroupHabitsPage'
 import HabitsPage from './pages/HabitsPage'
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/habits/:id" element={<RequireAuth><HabitDetailPage /></RequireAuth>} />
       <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
       <Route path="/groups" element={<RequireAuth><GroupsPage /></RequireAuth>} />
+      <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
       <Route path="/groups/new" element={<RequireAuth><CreateGroupPage /></RequireAuth>} />
       <Route path="/groups/:id/ranking" element={<RequireAuth><GroupRankingPage /></RequireAuth>} />
       <Route path="/groups/:id/manage" element={<RequireAuth><ManageGroupHabitsPage /></RequireAuth>} />
