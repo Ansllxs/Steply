@@ -28,6 +28,7 @@ export default function TextField({
   placeholder,
   autoComplete,
   revealable = false,
+  disabled = false,
 }) {
   const { t } = usePreferences()
   const inputRef = useRef(null)
@@ -58,6 +59,7 @@ export default function TextField({
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
           aria-required="true"
+          disabled={disabled}
         />
         {revealable ? (
           <button

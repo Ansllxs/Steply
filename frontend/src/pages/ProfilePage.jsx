@@ -17,16 +17,16 @@ import {
   profileActions,
   profilePhotoTypes,
 } from '../data/profile'
-import { translatePhrase } from '../i18n/phrases'
+import { habitErrorText, progressSummary } from '../services/habits'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 import { useProfile } from '../state/useProfile'
 import { loadImage } from '../utils/cropImage'
 
 export default function ProfilePage() {
-  const { language, t } = usePreferences()
+  const { t } = usePreferences()
   const { user, logout } = useAuth()
-  const { profile, photoUrl, updatePhoto } = useProfile()
+  const { photoUrl, updatePhoto } = useProfile()
   const location = useLocation()
   const navigate = useNavigate()
   const pendingUrlRef = useRef('')
@@ -35,6 +35,21 @@ export default function ProfilePage() {
   const [photoToast, setPhotoToast] = useState(0)
   const [toastVisible, setToastVisible] = useState(false)
   const [photoLoading, setPhotoLoading] = useState(false)
+  const [summary, setSummary] = useState({ status: 'loading', error: '', data: null })
+
+  useEffect(() => {
+    let active = true
+    progressSummary()
+      .then((data) => {
+        if (active) setSummary({ status: 'ready', error: '', data: data.resumen })
+      })
+      .catch((err) => {
+        if (active) setSummary({ status: 'error', error: habitErrorText(err, t), data: null })
+      })
+    return () => {
+      active = false
+    }
+  }, [t, location.key])
 
   useEffect(() => {
     return () => {
@@ -145,13 +160,14 @@ export default function ProfilePage() {
             onAccept={handleAccept}
           />
         ) : null}
+        {summary.error ? <p className="field-error" role="alert">{summary.error}</p> : null}
         <div className="profile-stats">
           <article className="profile-stat">
             <span className="profile-stat-icon">
               <img src={flameIcon} alt="" width="18" height="18" />
             </span>
             <span>
-              <strong>{translatePhrase(language, profile.streak)}</strong>
+              <strong>{summary.data ? summary.data.rachaActual : '—'}</strong>
               <span>{t('profile.streakCaption')}</span>
             </span>
           </article>
@@ -160,7 +176,7 @@ export default function ProfilePage() {
               <img src={starIcon} alt="" width="18" height="18" />
             </span>
             <span>
-              <strong>{profile.points}</strong>
+              <strong>{summary.data ? summary.data.puntosTotales : '—'}</strong>
               <span>{t('profile.pointsCaption')}</span>
             </span>
           </article>

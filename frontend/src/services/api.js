@@ -70,3 +70,41 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
 
   return data
 }
+
+export async function apiForm(path, { method = 'POST', formData, auth = true } = {}) {
+  const headers = { Accept: 'application/json' }
+
+  if (auth) {
+    const token = readToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+  }
+
+  let response
+
+  try {
+    response = await fetch(`${API_URL}/api${path}`, {
+      method,
+      headers,
+      body: formData,
+    })
+  } catch {
+    throw new ApiError(0, 'RED', '')
+  }
+
+  const text = await response.text()
+  let data = null
+
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = null
+    }
+  }
+
+  if (!response.ok) {
+    throw new ApiError(response.status, data?.codigo, data?.mensaje, data?.detalles)
+  }
+
+  return data
+}
