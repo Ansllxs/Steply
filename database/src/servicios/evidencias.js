@@ -5,6 +5,7 @@ import { prisma } from '../cliente.js';
 import { conflicto, fueraDeTiempo, noEncontrado, sinPermiso, validacion } from '../errores.js';
 import { aTexto, hoyEn } from '../utils/fechas.js';
 import { ventanaRegistro } from '../logica/reglas.js';
+import { anotarLimpieza, intentarLimpieza } from './limpieza.js';
 import { exigirVerReto, obtenerUsuario, puedeGestionarReto } from './permisos.js';
 
 export const FORMATOS_PERMITIDOS = ['jpg', 'jpeg', 'png', 'webp', 'heic'];
@@ -105,9 +106,12 @@ export async function eliminarEvidencia(actorId, evidenciaId, { almacenamiento }
   if (esDueno && reto.requiereEvidencia && registro.cumplido && registro._count.evidencias <= 1) {
     throw conflicto('Este reto exige evidencia: no puedes borrar la única foto del registro');
   }
-  await prisma.evidencia.delete({ where: { id: evidenciaId } });
-  if (almacenamiento) await almacenamiento.eliminar(evidencia.publicId).catch(() => {});
-  return { eliminada: evidenciaId, publicId: evidencia.publicId };
+  await prisma.$transaction(async (tx) => {
+    await tx.evidencia.delete({ where: { id: evidenciaId } });
+    await anotarLimpieza(tx, [evidencia.publicId]);
+  });
+  const limpieza = await intentarLimpieza(almacenamiento, [evidencia.publicId]);
+  return { eliminada: evidenciaId, publicId: evidencia.publicId, limpieza };
 }
 
 /** Galería de evidencias de un reto (pantalla "Detalle de hábito"). */

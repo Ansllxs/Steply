@@ -12,6 +12,7 @@ import {
 } from '../logica/reglas.js';
 import { aDate, aTexto, esFechaValida, hoyEn, inicioSemana, limitesMes, rangoDias, sumarDias } from '../utils/fechas.js';
 import { normalizarEvidencia, MAX_EVIDENCIAS_POR_REGISTRO } from './evidencias.js';
+import { anotarLimpieza, conLimpiezaPosterior } from './limpieza.js';
 import { cargarParticipante, recalcularParticipante, recalcularPuntosRegistro } from './motor.js';
 import { exigirGestionReto, exigirVerReto, obtenerUsuario } from './permisos.js';
 
@@ -76,7 +77,7 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
   const estado = datos.cumplido && reto.requiereAprobacion ? 'PENDIENTE' : 'APROBADO';
   const nota = datos.nota?.trim()?.slice(0, 500) || null;
 
-  return prisma.$transaction(async (tx) => {
+  return conLimpiezaPosterior(() => prisma.$transaction(async (tx) => {
     // Serializa dos envíos del mismo día para que el segundo no duplique la evidencia.
     await tx.$queryRaw`SELECT id FROM "participantes_reto" WHERE id = CAST(${participante.id} AS uuid) FOR UPDATE`;
     const bloqueado = await tx.registroCumplimiento.findUnique({
@@ -87,7 +88,13 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
       throw conflicto('Este hábito ya fue completado en este día. No se guardó otra evidencia.');
     }
     const previo = bloqueado ?? existente;
+    let evidenciasObsoletas = [];
     if (previo && !datos.cumplido) {
+      const filas = await tx.evidencia.findMany({
+        where: { registroId: previo.id },
+        select: { publicId: true },
+      });
+      evidenciasObsoletas = await anotarLimpieza(tx, filas.map((fila) => fila.publicId));
       await tx.evidencia.deleteMany({ where: { registroId: previo.id } });
     }
     const evidenciasNuevas = previo?.cumplido && datos.cumplido ? [] : nuevas;
@@ -113,8 +120,8 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
     });
     const puntosRegistro = await recalcularPuntosRegistro(tx, participante, registro);
     const actualizado = await recalcularParticipante(tx, participante.id, { ahora });
-    return { registro, participante: actualizado, puntosRegistro };
-  });
+    return { registro, participante: actualizado, puntosRegistro, evidenciasObsoletas };
+  }), almacenamiento);
 }
 
 /**

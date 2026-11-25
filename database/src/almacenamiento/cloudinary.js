@@ -67,9 +67,25 @@ export function crearAlmacenamientoCloudinary({
     },
 
     async eliminarVarios(publicIds) {
-      // La API admite hasta 100 public_id por llamada.
+      const fallidos = [];
       for (let i = 0; i < publicIds.length; i += 100) {
-        await cloudinary.api.delete_resources(publicIds.slice(i, i + 100), { resource_type: 'image' });
+        const lote = publicIds.slice(i, i + 100);
+        let resultado;
+        try {
+          resultado = await cloudinary.api.delete_resources(lote, { resource_type: 'image' });
+        } catch {
+          fallidos.push(...lote);
+          continue;
+        }
+        for (const id of lote) {
+          const estado = resultado?.deleted?.[id];
+          if (estado !== 'deleted' && estado !== 'not_found') fallidos.push(id);
+        }
+      }
+      if (fallidos.length) {
+        const error = new Error('No se pudieron borrar algunas imágenes');
+        error.fallidos = fallidos;
+        throw error;
       }
     },
 
@@ -119,7 +135,16 @@ export function crearAlmacenamientoMemoria({ carpeta = 'steply/evidencias' } = {
       archivos.delete(publicId);
     },
     async eliminarVarios(ids) {
-      ids.forEach((id) => archivos.delete(id));
+      const fallidos = [];
+      for (const id of ids) {
+        if (archivos.has(id) || String(id).startsWith(`${carpeta}/`)) archivos.delete(id);
+        else fallidos.push(id);
+      }
+      if (fallidos.length) {
+        const error = new Error('No se pudieron borrar algunas imágenes');
+        error.fallidos = fallidos;
+        throw error;
+      }
     },
     esUrlPropia(url, publicId) {
       return archivos.has(publicId) && typeof url === 'string' && url.includes(`/${publicId}.`);

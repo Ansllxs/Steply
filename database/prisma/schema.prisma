@@ -546,3 +546,14 @@ model InsigniaUsuario {
   @@id([usuarioId, insigniaId])
   @@map("insignias_usuario")
 }
+
+/// Imagen que ya no está en la base y todavía debe borrarse del almacenamiento.
+/// Se crea en la misma transacción que elimina la referencia. Si Cloudinary
+/// falla, la fila permanece para reintentar sin borrar nada antes de tiempo.
+model LimpiezaPendiente {
+  id       String   @id @default(uuid()) @db.Uuid
+  publicId String   @unique @map("public_id") @db.VarChar(255)
+  creadoEn DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  @@map("limpiezas_pendientes")
+}

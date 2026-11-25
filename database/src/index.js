@@ -20,6 +20,7 @@ export * as permisos from './servicios/permisos.js';
 export * as reglas from './logica/reglas.js';
 export { calcularRacha } from './logica/rachas.js';
 export * as fechas from './utils/fechas.js';
+export { anotarLimpieza, conLimpiezaPosterior, intentarLimpieza } from './servicios/limpieza.js';
 
 export {
   crearAlmacenamientoCloudinary,

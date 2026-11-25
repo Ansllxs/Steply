@@ -18,6 +18,7 @@ import {
   obtenerMembresia,
   obtenerUsuario,
 } from './permisos.js';
+import { anotarLimpieza, intentarLimpieza } from './limpieza.js';
 
 const FRECUENCIAS = ['DIARIA', 'SEMANAL', 'DIAS_ESPECIFICOS'];
 const PERIODOS_CASTIGO = ['SEMANAL', 'AL_FINALIZAR'];
@@ -352,15 +353,14 @@ export async function eliminarReto(actorId, retoId, { almacenamiento } = {}) {
       where: { registro: { participante: { retoId } } },
       select: { publicId: true },
     });
+    const ids = await anotarLimpieza(tx, evidencias.map((e) => e.publicId));
     await tx.reto.delete({ where: { id: retoId } });
     for (const { usuarioId } of participantes) await sincronizarPuntosUsuario(tx, usuarioId);
-    return evidencias.map((e) => e.publicId);
+    return ids;
   });
 
-  if (almacenamiento && evidenciasPorBorrar.length) {
-    await almacenamiento.eliminarVarios(evidenciasPorBorrar).catch(() => {});
-  }
-  return { evidenciasPorBorrar };
+  const limpieza = await intentarLimpieza(almacenamiento, evidenciasPorBorrar);
+  return { evidenciasPorBorrar, limpieza };
 }
 
 /** Cancela un reto sin borrar su historial: deja de exigirse y de evaluarse. */

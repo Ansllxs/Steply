@@ -1,4 +1,4 @@
-import { prisma, insignias, evidencias, noEncontrado, validacion, conflicto } from '@steply/database';
+import { prisma, insignias, evidencias, noEncontrado, validacion, conflicto, intentarLimpieza } from '@steply/database';
 import { almacenamientoPerfiles } from '../config/almacenamiento.js';
 import { limpiarUsuario } from './auth.js';
 
@@ -39,20 +39,25 @@ export async function cambiarFoto(usuario, archivo) {
     : foto.url;
 
   let actualizado;
+  const anterior = usuario.fotoPublicId && usuario.fotoPublicId !== foto.publicId ? usuario.fotoPublicId : '';
   try {
-    actualizado = await prisma.usuario.update({
-      where: { id: usuario.id },
-      data: { fotoUrl, fotoPublicId: foto.publicId },
+    actualizado = await prisma.$transaction(async (tx) => {
+      const guardado = await tx.usuario.update({
+        where: { id: usuario.id },
+        data: { fotoUrl, fotoPublicId: foto.publicId },
+      });
+      if (anterior) {
+        await tx.limpiezaPendiente.create({ data: { publicId: anterior } });
+      }
+      return guardado;
     });
   } catch (error) {
-    await almacenamientoPerfiles.eliminar(foto.publicId).catch(() => {});
+    await prisma.limpiezaPendiente.create({ data: { publicId: foto.publicId } }).catch(() => {});
+    await intentarLimpieza(almacenamientoPerfiles, [foto.publicId]);
     throw error;
   }
 
-  // La foto anterior se borra solo después de guardar la nueva.
-  if (usuario.fotoPublicId && usuario.fotoPublicId !== foto.publicId) {
-    almacenamientoPerfiles.eliminar(usuario.fotoPublicId).catch(() => {});
-  }
+  if (anterior) await intentarLimpieza(almacenamientoPerfiles, [anterior]);
   return limpiarUsuario(actualizado);
 }
 

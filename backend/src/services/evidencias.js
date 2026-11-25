@@ -1,4 +1,4 @@
-import { evidencias, registros, validacion } from '@steply/database';
+import { evidencias, registros, validacion, intentarLimpieza, prisma } from '@steply/database';
 import { almacenamientoEvidencias } from '../config/almacenamiento.js';
 
 // Con multipart/form-data todo llega como texto, así que "true" se convierte a booleano
@@ -28,9 +28,13 @@ export async function registrarConFotos(usuario, retoId, body, archivos = []) {
       { almacenamiento: almacenamientoEvidencias },
     );
   } catch (err) {
-    // Si el registro falla, se borran las fotos que ya se habían subido
     if (subidas.length > 0) {
-      almacenamientoEvidencias.eliminarVarios(subidas.map((s) => s.publicId)).catch(() => {});
+      const ids = subidas.map((s) => s.publicId);
+      await prisma.limpiezaPendiente.createMany({
+        data: ids.map((publicId) => ({ publicId })),
+        skipDuplicates: true,
+      }).catch(() => {});
+      await intentarLimpieza(almacenamientoEvidencias, ids);
     }
     throw err;
   }

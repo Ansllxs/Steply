@@ -12,6 +12,7 @@ export class ApiError extends Error {
     this.name = 'ApiError'
     this.status = status
     this.codigo = codigo || ''
+    this.mensaje = mensaje || ''
     this.detalles = detalles || {}
   }
 }

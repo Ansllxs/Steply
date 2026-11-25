@@ -1,6 +1,7 @@
 import 'dotenv/config';
-import { desconectar } from '@steply/database';
+import { desconectar, intentarLimpieza } from '@steply/database';
 import app from './app.js';
+import { almacenamientoEvidencias } from './config/almacenamiento.js';
 import { validarArranque } from './config/entorno.js';
 import { iniciarCierreDiario } from './services/cierreDiario.js';
 
@@ -13,6 +14,9 @@ if (problemas.length > 0) {
 const PORT = process.env.PORT || 3000;
 const servidor = app.listen(PORT, () => {
   console.log(`Servidor en http://localhost:${PORT}`);
+  intentarLimpieza(almacenamientoEvidencias).catch(() => {
+    console.error('No se pudo reintentar la limpieza de imágenes pendientes.');
+  });
 });
 
 const intervaloCierre = iniciarCierreDiario();
