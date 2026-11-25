@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
+import ChoiceGroup from '../components/ChoiceGroup'
 import TextField from '../components/TextField'
 import { addCalendarMonths, calendarDate, createPersonalHabit, habitErrorText } from '../services/habits'
 import { listGroups } from '../services/social'
@@ -181,24 +182,17 @@ export default function CreateHabitPage() {
             onChange={(event) => setName(event.target.value)}
             error={errors.name ? (errors.name.startsWith('validation.') ? t(errors.name) : errors.name) : undefined}
           />
-          <fieldset className="type-field">
-            <legend>{t('habit.type')}</legend>
-            <div className="type-options" role="radiogroup" aria-label={t('habit.type')}>
-              {types.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={type === item.id ? 'type-option is-selected' : 'type-option'}
-                  role="radio"
-                  aria-checked={type === item.id}
-                  disabled={submitting}
-                  onClick={() => setType(item.id)}
-                >
-                  {t(item.id === 'personal' ? 'habit.personal' : 'habit.groupType')}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <ChoiceGroup
+            name="habit-type"
+            legend={t('habit.type')}
+            value={type}
+            disabled={submitting}
+            onChange={setType}
+            options={types.map((item) => ({
+              id: item.id,
+              label: t(item.id === 'personal' ? 'habit.personal' : 'habit.groupType'),
+            }))}
+          />
           {type === 'group' ? (
             <div className="field">
               <label htmlFor="habit-group">{t('habit.group')}</label>
@@ -225,31 +219,20 @@ export default function CreateHabitPage() {
               ) : null}
             </div>
           ) : null}
-          <fieldset className="type-field">
-            <legend>{t('habit.frequency')}</legend>
-            <div className="type-options frequency" role="radiogroup" aria-label={t('habit.frequency')}>
-              {frequencies.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={frequency === item.id ? 'type-option is-selected' : 'type-option'}
-                  role="radio"
-                  aria-checked={frequency === item.id}
-                  disabled={submitting}
-                  onClick={() => setFrequency(item.id)}
-                >
-                  {t(item.label)}
-                </button>
-              ))}
-            </div>
-            {errors.frequency ? (
-              <p className="field-error" role="alert">
-                {errors.frequency.startsWith('validation.') || errors.frequency.startsWith('habit.')
-                  ? t(errors.frequency)
-                  : errors.frequency}
-              </p>
-            ) : null}
-          </fieldset>
+          <ChoiceGroup
+            name="habit-frequency"
+            legend={t('habit.frequency')}
+            className="type-options frequency"
+            value={frequency}
+            disabled={submitting}
+            onChange={setFrequency}
+            options={frequencies.map((item) => ({ id: item.id, label: t(item.label) }))}
+            error={errors.frequency
+              ? (errors.frequency.startsWith('validation.') || errors.frequency.startsWith('habit.')
+                ? t(errors.frequency)
+                : errors.frequency)
+              : ''}
+          />
           {frequency === 'SEMANAL' ? (
             <div className="field">
               <label htmlFor="habit-times">{t('habit.timesPerWeek')}</label>
@@ -294,27 +277,16 @@ export default function CreateHabitPage() {
               ) : null}
             </fieldset>
           ) : null}
-          <fieldset className="type-field">
-            <legend>{t('habit.duration')}</legend>
-            <div className="type-options duration" role="radiogroup" aria-label={t('habit.duration')}>
-              {durations.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={duration === item.id ? 'type-option is-selected' : 'type-option'}
-                  role="radio"
-                  aria-checked={duration === item.id}
-                  disabled={submitting}
-                  onClick={() => setDuration(item.id)}
-                >
-                  {t(item.label)}
-                </button>
-              ))}
-            </div>
-            {errors.duration ? (
-              <p className="field-error" role="alert">{t(errors.duration)}</p>
-            ) : null}
-          </fieldset>
+          <ChoiceGroup
+            name="habit-duration"
+            legend={t('habit.duration')}
+            className="type-options duration"
+            value={duration}
+            disabled={submitting}
+            onChange={setDuration}
+            options={durations.map((item) => ({ id: item.id, label: t(item.label) }))}
+            error={errors.duration ? t(errors.duration) : ''}
+          />
           {duration === 'custom' ? (
             <div className="field">
               <label htmlFor="habit-end">{t('habit.endDate')}</label>

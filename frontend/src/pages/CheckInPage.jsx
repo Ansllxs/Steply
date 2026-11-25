@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import AnimatedToast from '../components/AnimatedToast'
 import Button from '../components/Button'
+import ChoiceGroup from '../components/ChoiceGroup'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import LoadingIndicator from '../components/LoadingIndicator'
 import LoadingSkeleton from '../components/LoadingSkeleton'
@@ -178,20 +179,6 @@ export default function CheckInPage() {
     if (next !== 'yes') clearFile()
   }
 
-  function moveChoice(event) {
-    if (!['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(event.key)) return
-    event.preventDefault()
-    const index = choices.findIndex((item) => item.id === choice)
-    const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight'
-    const start = index < 0 ? 0 : index
-    const nextIndex = forward
-      ? (start + (index < 0 ? 0 : 1)) % choices.length
-      : (start - 1 + choices.length) % choices.length
-    const next = choices[nextIndex].id
-    selectChoice(next)
-    event.currentTarget.querySelector(`[data-choice="${next}"]`)?.focus()
-  }
-
   function leaveToHabits() {
     window.clearTimeout(returnTimer.current)
     navigate('/habits', { replace: true })
@@ -310,7 +297,7 @@ export default function CheckInPage() {
         <p className="dashboard-stats">
           {habit.nombre} · {todayLabel}
         </p>
-        <h2 className="sheet-section sheet-question">{t('check.question')}</h2>
+        <h2 id="check-question" className="sheet-section sheet-question">{t('check.question')}</h2>
         <div className="check-halo" aria-hidden="true" />
         {finished && !saved ? (
           <div className="check-save">
@@ -322,38 +309,19 @@ export default function CheckInPage() {
         ) : null}
         {!finished && !saved ? (
         <form className="check-form" onSubmit={handleSubmit} noValidate>
-          <div className="choice-group" role="radiogroup" aria-label={t('check.group')} onKeyDown={moveChoice}>
-            {choices.map((item) => {
-              const selected = choice === item.id
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={selected ? 'choice is-selected' : 'choice'}
-                  role="radio"
-                  data-choice={item.id}
-                  aria-checked={selected}
-                  tabIndex={choice ? (selected ? 0 : -1) : item.id === 'yes' ? 0 : -1}
-                  disabled={busy || Boolean(blocked)}
-                  onClick={() => selectChoice(item.id)}
-                >
-                  <span>{t(item.label)}</span>
-                  <span className="choice-mark" aria-hidden="true">
-                    {selected ? (
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M3.75 9.25L7.1 12.6L14.25 5.4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    ) : null}
-                  </span>
-                </button>
-              )
-            })}
-            {choiceMessage ? (
-              <p className="choice-status is-alert" role="alert">
-                {choiceMessage}
-              </p>
-            ) : null}
-          </div>
+          <ChoiceGroup
+            name="check-in"
+            labelledBy="check-question"
+            className="choice-group"
+            optionClass="choice"
+            mark
+            value={choice}
+            disabled={busy || Boolean(blocked)}
+            onChange={selectChoice}
+            options={choices.map((item) => ({ id: item.id, label: t(item.label) }))}
+            error={choiceMessage}
+            errorClassName="choice-status is-alert"
+          />
           {blocked ? <p className="field-error" role="alert">{t(blocked)}</p> : null}
           {alreadyRecorded && !blocked ? <p className="dashboard-stats">{t('check.already')}</p> : null}
           {choice === 'yes' ? (

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
+import ChoiceGroup from '../components/ChoiceGroup'
 import TextField from '../components/TextField'
 import { changePassword } from '../services/account'
 import { saveToken } from '../services/api'
@@ -85,39 +86,27 @@ export default function SettingsPage() {
         <section className="settings-section" aria-labelledby="settings-language">
           <h2 id="settings-language">{t('settings.language')}</h2>
           <p>{t('settings.languageHelp')}</p>
-          <div className="settings-choices" role="radiogroup" aria-labelledby="settings-language">
-            {languages.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={language === item.id ? 'type-option is-selected' : 'type-option'}
-                role="radio"
-                aria-checked={language === item.id}
-                onClick={() => setLanguage(item.id)}
-              >
-                {t(item.label)}
-              </button>
-            ))}
-          </div>
+          <ChoiceGroup
+            name="settings-language"
+            labelledBy="settings-language"
+            className="settings-choices"
+            value={language}
+            onChange={setLanguage}
+            options={languages.map((item) => ({ id: item.id, label: t(item.label) }))}
+          />
         </section>
 
         <section className="settings-section" aria-labelledby="settings-appearance">
           <h2 id="settings-appearance">{t('settings.appearance')}</h2>
           <p>{t('settings.appearanceHelp')}</p>
-          <div className="settings-choices" role="radiogroup" aria-labelledby="settings-appearance">
-            {themes.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={theme === item.id ? 'type-option is-selected' : 'type-option'}
-                role="radio"
-                aria-checked={theme === item.id}
-                onClick={() => setTheme(item.id)}
-              >
-                {t(item.label)}
-              </button>
-            ))}
-          </div>
+          <ChoiceGroup
+            name="settings-theme"
+            labelledBy="settings-appearance"
+            className="settings-choices"
+            value={theme}
+            onChange={setTheme}
+            options={themes.map((item) => ({ id: item.id, label: t(item.label) }))}
+          />
         </section>
 
         <section className="settings-section" aria-labelledby="settings-notifications">

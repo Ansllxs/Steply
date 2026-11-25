@@ -394,8 +394,7 @@ export const messages = {
     'settings.achievements': 'Logros',
     'settings.achievementsHelp': 'Preferencia para rachas y puntos. No se anuncian logros.',
     'settings.email': 'Correo',
-    'settings.emailHelp':
-      'Este es el correo de tu cuenta. Cambiarlo todavía requiere verificación en el servidor.',
+    'settings.emailHelp': 'Este es el correo de tu cuenta. Desde aquí no se puede cambiar.',
     'settings.security': 'Seguridad',
     'settings.password': 'Cambiar contraseña',
     'settings.passwordHelp':
@@ -405,7 +404,7 @@ export const messages = {
     'settings.passwordConfirm': 'Confirmar contraseña',
     'settings.passwordSave': 'Actualizar contraseña',
     'settings.passwordSaving': 'Actualizando...',
-    'settings.passwordSaved': 'Contraseña actualizada. La próxima vez entra con la nueva.',
+    'settings.passwordSaved': 'Contraseña actualizada. Esta sesión sigue activa y las demás se cerraron.',
   },
   en: {
     'nav.main': 'Main',
@@ -802,8 +801,7 @@ export const messages = {
     'settings.achievements': 'Achievements',
     'settings.achievementsHelp': 'Preference for streaks and points. Achievements are not announced.',
     'settings.email': 'Email',
-    'settings.emailHelp':
-      'This is your account email. Changing it still requires server verification.',
+    'settings.emailHelp': 'This is your account email. It cannot be changed here.',
     'settings.security': 'Security',
     'settings.password': 'Change password',
     'settings.passwordHelp':
@@ -813,7 +811,7 @@ export const messages = {
     'settings.passwordConfirm': 'Confirm password',
     'settings.passwordSave': 'Update password',
     'settings.passwordSaving': 'Updating...',
-    'settings.passwordSaved': 'Password updated. Use the new one next time you sign in.',
+    'settings.passwordSaved': 'Password updated. This session stays signed in and the others were closed.',
   },
 }
 

@@ -1,10 +1,12 @@
 import { resolveApiOrigin } from './api-origin'
+import { isAccessTokenExpired, readStoredToken, shouldAbandonSession, TOKEN_KEY } from './session'
 
 const API_URL = resolveApiOrigin({
   configured: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL,
   dev: import.meta.env.DEV,
 })
-const TOKEN_KEY = 'steply-token'
+
+export { TOKEN_KEY }
 
 export class ApiError extends Error {
   constructor(status, codigo, mensaje, detalles) {
@@ -18,11 +20,7 @@ export class ApiError extends Error {
 }
 
 export function readToken() {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
+  return readStoredToken(localStorage)
 }
 
 export function saveToken(token) {
@@ -37,9 +35,16 @@ export function clearToken() {
   }
 }
 
-function abandonSession(response, auth) {
-  if (response.status !== 401 || !auth || !readToken()) return
-  clearToken()
+function abandonSession(response, auth, sentToken) {
+  if (!shouldAbandonSession({
+    status: response.status,
+    authenticatedRequest: auth,
+    sentToken,
+    currentToken: readToken(),
+  })) return
+
+  if (readToken() === sentToken) clearToken()
+
   const path = window.location.pathname
   if (path !== '/' && path !== '/login' && path !== '/register') {
     window.location.assign('/login')
@@ -58,8 +63,13 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
 
   if (body !== undefined) headers['Content-Type'] = 'application/json'
 
+  let token = ''
   if (auth) {
-    const token = readToken()
+    token = readToken() || ''
+    if (token && isAccessTokenExpired(token)) {
+      clearToken()
+      token = ''
+    }
     if (token) headers.Authorization = `Bearer ${token}`
   }
 
@@ -88,7 +98,7 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   }
 
   if (!response.ok) {
-    abandonSession(response, auth)
+    abandonSession(response, auth, token)
     throw new ApiError(response.status, data?.codigo, data?.mensaje, data?.detalles)
   }
 
@@ -98,8 +108,13 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
 export async function apiForm(path, { method = 'POST', formData, auth = true } = {}) {
   const headers = { Accept: 'application/json' }
 
+  let token = ''
   if (auth) {
-    const token = readToken()
+    token = readToken() || ''
+    if (token && isAccessTokenExpired(token)) {
+      clearToken()
+      token = ''
+    }
     if (token) headers.Authorization = `Bearer ${token}`
   }
 
@@ -128,7 +143,7 @@ export async function apiForm(path, { method = 'POST', formData, auth = true } =
   }
 
   if (!response.ok) {
-    abandonSession(response, auth)
+    abandonSession(response, auth, token)
     throw new ApiError(response.status, data?.codigo, data?.mensaje, data?.detalles)
   }
 

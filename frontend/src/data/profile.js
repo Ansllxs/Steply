@@ -2,16 +2,6 @@ export const maxProfilePhotoBytes = 5 * 1024 * 1024
 
 export const profilePhotoTypes = ['image/jpeg', 'image/png', 'image/webp']
 
-export const profile = {
-  name: 'Angie Alpízar',
-  username: 'angiealpizar',
-  email: 'angie@ejemplo.com',
-  streak: '12 días',
-  streakCaption: 'Racha activa',
-  points: '1 250 pts',
-  pointsCaption: 'Puntos acumulados',
-}
-
 export const profileActions = [
   {
     id: 'habits',
@@ -53,9 +43,8 @@ export const profileActions = [
 export const USERNAME_MAX_LENGTH = 30
 
 /**
- * Demo username rule, checked only in the browser:
- * 1–30 letters (including accents), numbers, underscores, or periods.
- * Spaces are not allowed. Availability is not checked.
+ * Browser check for a username: 1–30 letters, numbers, underscores, or periods.
+ * Spaces are not allowed. The server still decides whether it is available.
  */
 export const USERNAME_PATTERN = /^[\p{L}\p{N}_.]{1,30}$/u
 

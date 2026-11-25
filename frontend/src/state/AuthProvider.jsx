@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { api, ApiError, clearToken, readToken, saveToken } from '../services/api'
+import { api, ApiError, clearToken, readToken, saveToken, TOKEN_KEY } from '../services/api'
 import { AuthContext } from './auth-context'
 
 export function AuthProvider({ children }) {
@@ -8,24 +8,45 @@ export function AuthProvider({ children }) {
   const [holding, setHolding] = useState(false)
 
   useEffect(() => {
-    if (!readToken()) return undefined
+    let request = 0
 
-    let cancelled = false
+    async function load(token, { quiet = false } = {}) {
+      const current = ++request
 
-    api('/auth/me')
-      .then((data) => {
-        if (!cancelled) setUser(data.usuario)
-      })
-      .catch(() => {
+      if (!token) {
+        setUser(null)
+        setHolding(false)
+        setStatus('ready')
+        return
+      }
+
+      if (!quiet) setStatus('loading')
+
+      try {
+        const data = await api('/auth/me')
+        if (current !== request || readToken() !== token) return
+        setUser(data.usuario)
+      } catch {
+        if (current !== request || readToken() !== token) return
         clearToken()
-        if (!cancelled) setUser(null)
-      })
-      .finally(() => {
-        if (!cancelled) setStatus('ready')
-      })
+        setUser(null)
+        setHolding(false)
+      } finally {
+        if (current === request) setStatus('ready')
+      }
+    }
 
+    load(readToken())
+
+    function onStorage(event) {
+      if (event.key !== TOKEN_KEY) return
+      load(readToken(), { quiet: true })
+    }
+
+    window.addEventListener('storage', onStorage)
     return () => {
-      cancelled = true
+      request += 1
+      window.removeEventListener('storage', onStorage)
     }
   }, [])
 
