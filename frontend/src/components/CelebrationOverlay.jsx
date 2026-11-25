@@ -16,7 +16,7 @@ const pieces = [
   { left: '60%', color: 'var(--color-soft)', delay: '100ms' },
 ]
 
-export default function CelebrationOverlay({ open, onClose, preview = false }) {
+export default function CelebrationOverlay({ open, onClose, preview = false, points = null }) {
   const { t } = usePreferences()
   const titleId = useId()
   const noteId = useId()
@@ -83,10 +83,13 @@ export default function CelebrationOverlay({ open, onClose, preview = false }) {
             {t('celebration.previewLabel')}
           </p>
         ) : null}
-        <h2 id={titleId}>{t('celebration.title')}</h2>
+        <h2 id={titleId}>{preview ? t('celebration.title') : t('celebration.done')}</h2>
         <p>{t('celebration.lead')}</p>
+        {!preview && Number.isFinite(points) && points > 0 ? (
+          <p className="celebration-points">{t('celebration.points', { count: points })}</p>
+        ) : null}
         <Button variant="secondary" onClick={onClose} ref={closeRef}>
-          {t('common.close')}
+          {preview ? t('common.close') : t('check.backToHabits')}
         </Button>
       </div>
     </div>

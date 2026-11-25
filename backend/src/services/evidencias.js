@@ -14,7 +14,7 @@ export async function registrarConFotos(usuario, retoId, body, archivos = []) {
     throw validacion('Solo se pueden adjuntar fotos cuando el reto se cumplió', { campo: 'fotos' });
   }
 
-  // Primero se valida cada foto y luego se suben
+  // Primero se valida cada foto y luego se suben. Un segundo envío del mismo día no agrega otra evidencia.
   archivos.forEach((archivo) => evidencias.validarArchivo(archivo));
   const subidas = [];
   try {

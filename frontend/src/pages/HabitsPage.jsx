@@ -6,7 +6,7 @@ import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
-import { habitCardFromParticipation, habitErrorText, listHabits } from '../services/habits'
+import { habitCardFromParticipation, habitErrorText, listHabits, todayProgress, withTodayStatus } from '../services/habits'
 import { usePreferences } from '../state/usePreferences'
 
 const filters = [
@@ -26,11 +26,18 @@ export default function HabitsPage() {
   useEffect(() => {
     let active = true
     listHabits()
-      .then((data) => {
+      .then(async (data) => {
         if (!active) return
+        const today = await todayProgress().catch(() => ({ hoy: [] }))
+        if (!active) return
+        const states = new Map((today.hoy ?? []).map((item) => [item.reto.id, item.estadoHoy]))
         setResult({
           request,
-          habits: (data.retos ?? []).map((row) => habitCardFromParticipation(row, t)),
+          habits: (data.retos ?? []).map((row) => withTodayStatus(
+            habitCardFromParticipation(row, t),
+            states.get(row.reto.id),
+            t,
+          )),
           error: '',
         })
       })

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import AnimatedToast from '../components/AnimatedToast'
 import Button from '../components/Button'
@@ -43,13 +43,18 @@ export default function CheckInPage() {
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [earnedPoints, setEarnedPoints] = useState(null)
   const previewRef = useRef('')
   const fileInputRef = useRef(null)
   const requestRef = useRef(0)
+  const lockRef = useRef(false)
+  const returnTimer = useRef(0)
+  const navigate = useNavigate()
 
   useEffect(() => {
     return () => {
       if (previewRef.current) URL.revokeObjectURL(previewRef.current)
+      window.clearTimeout(returnTimer.current)
     }
   }, [])
 
@@ -167,9 +172,14 @@ export default function CheckInPage() {
     setPreviewLoading(false)
   }
 
+  function leaveToHabits() {
+    window.clearTimeout(returnTimer.current)
+    navigate('/habits', { replace: true })
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
-    if (submitting) return
+    if (lockRef.current) return
 
     if (!choice) {
       setError('check.choose')
@@ -194,27 +204,29 @@ export default function CheckInPage() {
       return
     }
 
+    lockRef.current = true
     setSubmitting(true)
     setError('')
     setNotice('')
     setSaved(false)
     try {
-      await saveCheckIn(habit.id, { completed: choice === 'yes', file: choice === 'yes' ? file : null })
-      setNotice(file && choice === 'yes' ? 'check.uploaded' : choice === 'yes' ? 'check.saved' : 'check.savedNo')
-      setSaved(choice === 'yes')
-      if (file && choice === 'yes') clearFile()
-      try {
-        const todayData = await todayProgress()
-        const nextToday = (todayData.hoy ?? []).find((item) => item.reto.id === habit.id) ?? null
-        setPage((current) => ({ ...current, today: nextToday }))
-      } catch {
-        // The record is already stored. A failed refresh should not undo that confirmation.
+      const result = await saveCheckIn(habit.id, { completed: choice === 'yes', file: choice === 'yes' ? file : null })
+      if (choice === 'yes') {
+        const points = Number(result?.puntosRegistro)
+        setEarnedPoints(Number.isFinite(points) && points > 0 ? points : null)
+        setSaved(true)
+        returnTimer.current = window.setTimeout(() => {
+          navigate('/habits', { replace: true })
+        }, 2200)
+        return
       }
+      setNotice('check.savedNo')
+      navigate('/habits', { replace: true })
     } catch (err) {
+      lockRef.current = false
       setError(habitErrorText(err, t))
       setNotice('')
       setSaved(false)
-    } finally {
       setSubmitting(false)
     }
   }
@@ -256,7 +268,9 @@ export default function CheckInPage() {
       : !todayItem
         ? 'check.unavailable'
         : ''
-  const alreadyRecorded = todayItem?.registroId
+  const finished = todayItem?.estadoHoy === 'COMPLETADO' || todayItem?.estadoHoy === 'PENDIENTE_APROBACION'
+  const busy = submitting || saved
+  const alreadyRecorded = todayItem?.registroId && !finished
   const statusLabels = {
     yes: 'check.selectedYes',
     no: 'check.selectedNo',
@@ -282,6 +296,15 @@ export default function CheckInPage() {
         </p>
         <h2 className="sheet-section sheet-question">{t('check.question')}</h2>
         <div className="check-halo" aria-hidden="true" />
+        {finished && !saved ? (
+          <div className="check-save">
+            <p className="dashboard-stats" role="status">
+              {todayItem.estadoHoy === 'PENDIENTE_APROBACION' ? t('check.pendingReview') : t('check.doneToday')}
+            </p>
+            <Button to="/habits">{t('check.backToHabits')}</Button>
+          </div>
+        ) : null}
+        {!finished && !saved ? (
         <form className="check-form" onSubmit={handleSubmit} noValidate>
           <div className="choice-group" role="group" aria-label={t('check.group')}>
             {choices.map((item) => {
@@ -300,7 +323,7 @@ export default function CheckInPage() {
                   type="button"
                   className={className}
                   aria-pressed={selected}
-                  disabled={submitting || Boolean(blocked)}
+                  disabled={busy || Boolean(blocked)}
                   onClick={() => {
                     setChoice(item.id)
                     setError('')
@@ -326,7 +349,7 @@ export default function CheckInPage() {
               className="file-input"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic"
-              disabled={submitting || Boolean(blocked)}
+              disabled={busy || Boolean(blocked)}
               onChange={handleFile}
             />
             <label className="btn btn-outline" htmlFor="evidence-file">
@@ -343,7 +366,7 @@ export default function CheckInPage() {
               </figure>
             ) : null}
             {file ? (
-              <Button type="button" variant="secondary" onClick={clearFile} disabled={submitting}>
+              <Button type="button" variant="secondary" onClick={clearFile} disabled={busy}>
                 {t('check.removeImage')}
               </Button>
             ) : null}
@@ -354,15 +377,17 @@ export default function CheckInPage() {
             ) : null}
           </div>
           <div className="check-save">
-            <Button type="submit" disabled={submitting || Boolean(blocked)}>
-              {submitting ? t('check.saving') : t('check.save')}
+            <Button type="submit" disabled={busy || Boolean(blocked)}>
+              {submitting ? t('check.saving') : choice === 'yes' ? t('check.complete') : t('check.save')}
             </Button>
             <AnimatedToast message={notice ? (notice.startsWith('check.') ? t(notice) : notice) : ''} />
           </div>
         </form>
+        ) : null}
         <CelebrationOverlay
           open={saved}
-          onClose={() => setSaved(false)}
+          points={earnedPoints}
+          onClose={leaveToHabits}
         />
       </div>
     </main>

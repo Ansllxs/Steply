@@ -243,6 +243,14 @@
   line-height: 22px;
 }
 
+.celebration-points {
+  margin-top: 8px;
+  color: var(--color-purple);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
 .celebration-dialog .btn {
   margin-top: 18px;
 }

@@ -77,10 +77,20 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
   const nota = datos.nota?.trim()?.slice(0, 500) || null;
 
   return prisma.$transaction(async (tx) => {
-    // Si cambia a "no cumplido", sus evidencias anteriores ya no aplican.
-    if (existente && !datos.cumplido) {
-      await tx.evidencia.deleteMany({ where: { registroId: existente.id } });
+    // Serializa dos envíos del mismo día para que el segundo no duplique la evidencia.
+    await tx.$queryRaw`SELECT id FROM "participantes_reto" WHERE id = CAST(${participante.id} AS uuid) FOR UPDATE`;
+    const bloqueado = await tx.registroCumplimiento.findUnique({
+      where: { participanteId_fecha: { participanteId: participante.id, fecha: aDate(fecha) } },
+      include: { _count: { select: { evidencias: true } } },
+    });
+    if (bloqueado?.cumplido && datos.cumplido && nuevas.length > 0) {
+      throw conflicto('Este hábito ya fue completado en este día. No se guardó otra evidencia.');
     }
+    const previo = bloqueado ?? existente;
+    if (previo && !datos.cumplido) {
+      await tx.evidencia.deleteMany({ where: { registroId: previo.id } });
+    }
+    const evidenciasNuevas = previo?.cumplido && datos.cumplido ? [] : nuevas;
     const registro = await tx.registroCumplimiento.upsert({
       where: { participanteId_fecha: { participanteId: participante.id, fecha: aDate(fecha) } },
       create: {
@@ -89,7 +99,7 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
         cumplido: datos.cumplido,
         estado,
         nota,
-        evidencias: { create: nuevas },
+        evidencias: { create: evidenciasNuevas },
       },
       update: {
         cumplido: datos.cumplido,
@@ -97,7 +107,7 @@ export async function registrarCumplimiento(usuarioId, retoId, datos, { almacena
         nota,
         automatico: false,
         registradoEn: new Date(),
-        evidencias: { create: nuevas },
+        evidencias: { create: evidenciasNuevas },
       },
       include: { evidencias: true },
     });

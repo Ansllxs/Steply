@@ -138,6 +138,13 @@ export function habitCardFromParticipation(row, t) {
   }
 }
 
+export function withTodayStatus(card, estadoHoy, t) {
+  if (!estadoHoy || estadoHoy === 'PENDIENTE' || estadoHoy === 'NO_PROGRAMADO') return card
+  const key = todayStatus[estadoHoy]
+  if (!key) return card
+  return { ...card, status: t(key) }
+}
+
 const todayStatus = {
   COMPLETADO: 'habit.statusCompleted',
   PENDIENTE: 'habit.statusPending',
