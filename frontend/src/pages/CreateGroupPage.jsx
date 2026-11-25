@@ -66,7 +66,6 @@ export default function CreateGroupPage() {
             name="name"
             label={t('groupCreate.name')}
             value={name}
-            placeholder="Compu squad"
             autoComplete="off"
             disabled={submitting}
             onChange={(event) => setName(event.target.value)}

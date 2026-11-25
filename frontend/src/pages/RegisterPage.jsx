@@ -137,7 +137,6 @@ export default function RegisterPage() {
               name="name"
               label={t('register.name')}
               value={name}
-              placeholder={t('register.namePlaceholder')}
               autoComplete="name"
               error={errors.name ? t(errors.name) : undefined}
               onChange={(event) => {
@@ -151,7 +150,6 @@ export default function RegisterPage() {
               name="username"
               label={t('register.username')}
               value={username}
-              placeholder={t('register.usernamePlaceholder')}
               autoComplete="username"
               error={errors.username ? t(errors.username) : undefined}
               onChange={(event) => {
@@ -166,7 +164,6 @@ export default function RegisterPage() {
               label={t('login.email')}
               type="email"
               value={email}
-              placeholder={t('register.emailPlaceholder')}
               autoComplete="email"
               error={errors.email ? t(errors.email) : undefined}
               onChange={(event) => {
@@ -181,7 +178,6 @@ export default function RegisterPage() {
               label={t('login.password')}
               type="password"
               value={password}
-              placeholder={t('register.passwordPlaceholder')}
               autoComplete="new-password"
               revealable
               hint={t('register.passwordHelp')}
@@ -198,7 +194,6 @@ export default function RegisterPage() {
               label={t('register.confirm')}
               type="password"
               value={confirmPassword}
-              placeholder={t('register.confirmPlaceholder')}
               autoComplete="new-password"
               revealable
               error={errors.confirmPassword ? t(errors.confirmPassword) : undefined}

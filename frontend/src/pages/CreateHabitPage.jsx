@@ -176,7 +176,6 @@ export default function CreateHabitPage() {
             name="name"
             label={t('habit.name')}
             value={name}
-            placeholder="Leer"
             autoComplete="off"
             disabled={submitting}
             onChange={(event) => setName(event.target.value)}

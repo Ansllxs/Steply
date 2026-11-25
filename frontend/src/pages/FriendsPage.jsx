@@ -222,7 +222,6 @@ export default function FriendsPage() {
                   id="friend-search"
                   type="search"
                   value={query}
-                  placeholder={t('friends.searchPlaceholder')}
                   onChange={(event) => {
                     const value = event.target.value
                     setQuery(value)

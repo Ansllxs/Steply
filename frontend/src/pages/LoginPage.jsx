@@ -113,7 +113,6 @@ export default function LoginPage() {
               label={t('login.identifier')}
               type="text"
               value={identifier}
-              placeholder={t('login.identifierPlaceholder')}
               autoComplete="username"
               error={errors.identifier ? t(errors.identifier) : undefined}
               onChange={(event) => {
@@ -128,7 +127,6 @@ export default function LoginPage() {
               label={t('login.password')}
               type="password"
               value={password}
-              placeholder={t('register.passwordPlaceholder')}
               autoComplete="current-password"
               revealable
               error={errors.password ? t(errors.password) : undefined}
