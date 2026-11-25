@@ -43,8 +43,8 @@ export default function CheckInPage() {
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
   const previewRef = useRef('')
+  const fileInputRef = useRef(null)
   const requestRef = useRef(0)
 
   useEffect(() => {
@@ -85,6 +85,14 @@ export default function CheckInPage() {
     if (previewRef.current) URL.revokeObjectURL(previewRef.current)
     previewRef.current = nextUrl
     setPreviewUrl(nextUrl)
+  }
+
+  function clearFile() {
+    replacePreview('')
+    setFile(null)
+    setFileName('')
+    setFileError('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   async function handleFile(event) {
@@ -194,11 +202,18 @@ export default function CheckInPage() {
       await saveCheckIn(habit.id, { completed: choice === 'yes', file: choice === 'yes' ? file : null })
       setNotice(file && choice === 'yes' ? 'check.uploaded' : choice === 'yes' ? 'check.saved' : 'check.savedNo')
       setSaved(choice === 'yes')
-      const todayData = await todayProgress()
-      const nextToday = (todayData.hoy ?? []).find((item) => item.reto.id === habit.id) ?? null
-      setPage((current) => ({ ...current, today: nextToday }))
+      if (file && choice === 'yes') clearFile()
+      try {
+        const todayData = await todayProgress()
+        const nextToday = (todayData.hoy ?? []).find((item) => item.reto.id === habit.id) ?? null
+        setPage((current) => ({ ...current, today: nextToday }))
+      } catch {
+        // The record is already stored. A failed refresh should not undo that confirmation.
+      }
     } catch (err) {
       setError(habitErrorText(err, t))
+      setNotice('')
+      setSaved(false)
     } finally {
       setSubmitting(false)
     }
@@ -307,6 +322,7 @@ export default function CheckInPage() {
           <div className="evidence-upload">
             <input
               id="evidence-file"
+              ref={fileInputRef}
               className="file-input"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic"
@@ -326,6 +342,11 @@ export default function CheckInPage() {
                 </figcaption>
               </figure>
             ) : null}
+            {file ? (
+              <Button type="button" variant="secondary" onClick={clearFile} disabled={submitting}>
+                {t('check.removeImage')}
+              </Button>
+            ) : null}
             {fileError ? (
               <p className="file-name is-alert" role="alert">
                 {t(fileError)}
@@ -338,20 +359,10 @@ export default function CheckInPage() {
             </Button>
             <AnimatedToast message={notice ? (notice.startsWith('check.') ? t(notice) : notice) : ''} />
           </div>
-          <div className="celebration-preview">
-            <Button type="button" variant="secondary" onClick={() => setPreviewOpen(true)}>
-              {t('celebration.preview')}
-            </Button>
-            <p className="file-name">{t('celebration.previewHelp')}</p>
-          </div>
         </form>
         <CelebrationOverlay
-          open={saved || previewOpen}
-          preview={previewOpen && !saved}
-          onClose={() => {
-            setSaved(false)
-            setPreviewOpen(false)
-          }}
+          open={saved}
+          onClose={() => setSaved(false)}
         />
       </div>
     </main>

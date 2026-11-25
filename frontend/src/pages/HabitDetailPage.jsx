@@ -17,6 +17,7 @@ import {
   updateHabit,
   weekMarks,
 } from '../services/habits'
+import { displayMediaUrl } from '../services/media'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
@@ -200,7 +201,7 @@ export default function HabitDetailPage() {
         </Link>
         {photos.map((photo) => (
           <figure className="evidence-preview" key={photo.id}>
-            <img src={photo.url} alt="" />
+            <img src={displayMediaUrl(photo.url, photo.publicId)} alt="" />
           </figure>
         ))}
         {editing ? (

@@ -58,10 +58,13 @@ export function AuthProvider({ children }) {
   const finishTransition = useCallback(() => {
     setHolding(false)
   }, [])
+  const updateUser = useCallback((usuario) => {
+    if (usuario) setUser(usuario)
+  }, [])
 
   const value = useMemo(
-    () => ({ user, status, holding, register, login, logout, finishTransition }),
-    [user, status, holding, register, login, logout, finishTransition],
+    () => ({ user, status, holding, register, login, logout, finishTransition, updateUser }),
+    [user, status, holding, register, login, logout, finishTransition, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

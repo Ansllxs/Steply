@@ -99,7 +99,7 @@ export function crearAlmacenamientoMemoria() {
     nombre: 'memoria',
     archivos,
     async subir(buffer, { formato = 'jpg' } = {}) {
-      const publicId = `steply/evidencias/prueba-${++contador}`;
+      const publicId = `steply/evidencias/prueba-${Date.now()}-${++contador}-${Math.random().toString(36).slice(2, 8)}`;
       archivos.set(publicId, buffer);
       return {
         url: `https://res.cloudinary.com/demo/image/upload/${publicId}.${formato}`,

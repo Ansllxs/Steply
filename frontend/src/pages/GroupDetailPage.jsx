@@ -6,6 +6,7 @@ import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
 import { frequencyText, habitErrorText, isHabitId } from '../services/habits'
+import { displayMediaUrl } from '../services/media'
 import {
   getGroup,
   groupChallenges,
@@ -144,9 +145,14 @@ export default function GroupDetailPage() {
         <ul className="friend-list">
           {group.miembros.map((member) => (
             <li key={member.id} className="friend-row">
-              <div>
-                <p className="friend-name">{member.nombre}</p>
-                <p className="friend-handle">@{member.nombreUsuario}</p>
+              <div className="friend-identity">
+                {displayMediaUrl(member.fotoUrl) ? (
+                  <img className="friend-avatar" src={displayMediaUrl(member.fotoUrl)} alt="" width="36" height="36" />
+                ) : null}
+                <div>
+                  <p className="friend-name">{member.nombre}</p>
+                  <p className="friend-handle">@{member.nombreUsuario}</p>
+                </div>
               </div>
               <p className="friend-handle">{member.rol === 'ADMIN' ? t('group.admin') : t('group.memberRole')}</p>
             </li>
@@ -183,9 +189,14 @@ export default function GroupDetailPage() {
             <ul className="friend-list">
               {friends.map((item) => (
                 <li key={item.usuario.id} className="friend-row">
-                  <div>
-                    <p className="friend-name">{item.usuario.nombre}</p>
-                    <p className="friend-handle">@{item.usuario.nombreUsuario}</p>
+                  <div className="friend-identity">
+                    {displayMediaUrl(item.usuario.fotoUrl) ? (
+                      <img className="friend-avatar" src={displayMediaUrl(item.usuario.fotoUrl)} alt="" width="36" height="36" />
+                    ) : null}
+                    <div>
+                      <p className="friend-name">{item.usuario.nombre}</p>
+                      <p className="friend-handle">@{item.usuario.nombreUsuario}</p>
+                    </div>
                   </div>
                   <Button type="button" disabled={busy === item.usuario.id} onClick={() => invite(item.usuario.id)}>
                     {t('group.inviteFriend')}

@@ -1,6 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import BottomNav from '../components/BottomNav'
+import Button from '../components/Button'
+import TextField from '../components/TextField'
+import { changePassword } from '../services/account'
+import { habitErrorText } from '../services/habits'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
@@ -25,6 +30,45 @@ export default function SettingsPage() {
   const { user } = useAuth()
   const { language, theme, notifications, setLanguage, setTheme, setNotification, t } =
     usePreferences()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [nextPassword, setNextPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordNotice, setPasswordNotice] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+
+  async function handlePassword(event) {
+    event.preventDefault()
+    if (savingPassword) return
+    setPasswordNotice('')
+
+    if (!currentPassword) {
+      setPasswordError(t('validation.passwordRequired'))
+      return
+    }
+    if (nextPassword.length < 8) {
+      setPasswordError(t('validation.passwordShort'))
+      return
+    }
+    if (nextPassword !== confirmPassword) {
+      setPasswordError(t('validation.passwordMismatch'))
+      return
+    }
+
+    setSavingPassword(true)
+    setPasswordError('')
+    try {
+      await changePassword({ actual: currentPassword, nueva: nextPassword })
+      setCurrentPassword('')
+      setNextPassword('')
+      setConfirmPassword('')
+      setPasswordNotice(t('settings.passwordSaved'))
+    } catch (err) {
+      setPasswordError(habitErrorText(err, t))
+    } finally {
+      setSavingPassword(false)
+    }
+  }
 
   return (
     <main className="dashboard settings-page">
@@ -111,6 +155,54 @@ export default function SettingsPage() {
           <div className="settings-security">
             <h3>{t('settings.password')}</h3>
             <p>{t('settings.passwordHelp')}</p>
+            <form className="settings-password" onSubmit={handlePassword} noValidate>
+              <TextField
+                id="password-current"
+                name="current-password"
+                type="password"
+                label={t('settings.passwordCurrent')}
+                value={currentPassword}
+                autoComplete="current-password"
+                revealable
+                disabled={savingPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+              />
+              <TextField
+                id="password-new"
+                name="new-password"
+                type="password"
+                label={t('settings.passwordNew')}
+                value={nextPassword}
+                autoComplete="new-password"
+                revealable
+                disabled={savingPassword}
+                onChange={(event) => setNextPassword(event.target.value)}
+              />
+              <TextField
+                id="password-confirm"
+                name="confirm-password"
+                type="password"
+                label={t('settings.passwordConfirm')}
+                value={confirmPassword}
+                autoComplete="new-password"
+                revealable
+                disabled={savingPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+              />
+              {passwordError ? (
+                <p className="field-error" role="alert">
+                  {passwordError}
+                </p>
+              ) : null}
+              {passwordNotice ? (
+                <p className="auth-notice" role="status">
+                  {passwordNotice}
+                </p>
+              ) : null}
+              <Button type="submit" disabled={savingPassword}>
+                {savingPassword ? t('settings.passwordSaving') : t('settings.passwordSave')}
+              </Button>
+            </form>
           </div>
         </section>
       </div>

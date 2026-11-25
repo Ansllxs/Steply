@@ -75,9 +75,10 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
 
     try {
       const blob = await cropImageToBlob(imageUrl, pixels)
-      onAccept(blob)
-    } catch {
-      setError('profile.photoCropError')
+      await onAccept(blob)
+    } catch (err) {
+      const message = err instanceof Error && err.message ? err.message : 'profile.photoCropError'
+      setError(message.startsWith('profile.') ? message : message || 'profile.photoCropError')
       setBusy(false)
     }
   }
@@ -141,7 +142,7 @@ export default function ProfilePhotoEditor({ imageUrl, onCancel, onAccept }) {
         {busy ? <LoadingIndicator /> : null}
         {error ? (
           <p className="field-error" role="alert">
-            {t(error)}
+            {error.startsWith('profile.') ? t(error) : error}
           </p>
         ) : null}
         <div className="photo-crop-actions">

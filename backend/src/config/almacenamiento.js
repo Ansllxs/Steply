@@ -1,7 +1,7 @@
 import { crearAlmacenamientoCloudinary, crearAlmacenamientoMemoria } from '@steply/database';
 
 // Se crea una sola vez. Si faltan las credenciales de Cloudinary (por ejemplo en
-// desarrollo), las fotos se guardan en memoria y se pierden al reiniciar.
+// desarrollo), las fotos se guardan en memoria y se pierden al reiniciar el proceso.
 function crear(carpeta) {
   try {
     return crearAlmacenamientoCloudinary({ carpeta });

@@ -64,8 +64,8 @@ export function validateProfileIdentity(name, username) {
   const trimmedName = name.trim()
   const trimmedUsername = username.trim()
 
-  if (!trimmedName) {
-    errors.name = 'validation.nameRequired'
+  if (!trimmedName || trimmedName.length > 80) {
+    errors.name = trimmedName ? 'validation.nameLength' : 'validation.nameRequired'
   }
 
   if (!trimmedUsername) {

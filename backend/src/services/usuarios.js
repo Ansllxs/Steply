@@ -1,14 +1,31 @@
-import { prisma, insignias, evidencias, noEncontrado, validacion } from '@steply/database';
+import { prisma, insignias, evidencias, noEncontrado, validacion, conflicto } from '@steply/database';
 import { almacenamientoPerfiles } from '../config/almacenamiento.js';
 import { limpiarUsuario } from './auth.js';
 
 // Lo mínimo que se muestra de otra persona en listas y búsquedas
 export const datosPublicos = { id: true, nombre: true, nombreUsuario: true, fotoUrl: true };
 
-export async function editarPerfil(usuario, { nombre, descripcion, zonaHoraria }) {
+export async function editarPerfil(usuario, { nombre, descripcion, zonaHoraria, nombreUsuario }) {
+  const data = {};
+  if (nombre !== undefined) data.nombre = nombre;
+  if (descripcion !== undefined) data.descripcion = descripcion;
+  if (zonaHoraria !== undefined) data.zonaHoraria = zonaHoraria;
+  if (nombreUsuario !== undefined) {
+    const limpio = String(nombreUsuario).trim().toLowerCase();
+    if (limpio !== usuario.nombreUsuario) {
+      const ocupado = await prisma.usuario.findUnique({ where: { nombreUsuario: limpio } });
+      if (ocupado) {
+        throw conflicto('Ese nombre de usuario ya está en uso', {
+          errores: [{ campo: 'nombreUsuario', mensaje: 'Ese nombre de usuario ya está en uso' }],
+        });
+      }
+      data.nombreUsuario = limpio;
+    }
+  }
+
   const actualizado = await prisma.usuario.update({
     where: { id: usuario.id },
-    data: { nombre, descripcion, zonaHoraria },
+    data,
   });
   return limpiarUsuario(actualizado);
 }
@@ -17,10 +34,13 @@ export async function cambiarFoto(usuario, archivo) {
   if (!archivo) throw validacion('Debe adjuntar una foto en el campo foto');
   const formato = evidencias.validarArchivo(archivo);
   const foto = await almacenamientoPerfiles.subir(archivo.buffer, { formato });
+  const fotoUrl = almacenamientoPerfiles.nombre === 'memoria'
+    ? `${process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/api/medios?id=${encodeURIComponent(foto.publicId)}&origen=perfil`
+    : foto.url;
 
   const actualizado = await prisma.usuario.update({
     where: { id: usuario.id },
-    data: { fotoUrl: foto.url, fotoPublicId: foto.publicId },
+    data: { fotoUrl, fotoPublicId: foto.publicId },
   });
 
   // Se borra la foto anterior. Si falla no importa, el perfil ya quedó con la nueva

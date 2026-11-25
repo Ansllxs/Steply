@@ -76,6 +76,22 @@
   background: var(--color-white);
 }
 
+.friend-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.friend-avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-soft);
+}
+
 .friend-name {
   margin: 0;
   color: var(--color-dark);

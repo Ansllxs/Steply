@@ -133,6 +133,13 @@
   line-height: 18px;
 }
 
+.settings-password {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .settings-switch-track,
   .settings-switch-track::after {

@@ -5,6 +5,7 @@ import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import LoadingIndicator from '../components/LoadingIndicator'
 import { habitErrorText } from '../services/habits'
+import { displayMediaUrl } from '../services/media'
 import {
   acceptFriendRequest,
   acceptGroupInvitation,
@@ -94,9 +95,20 @@ export default function FriendsPage() {
   function personRow(person, actions) {
     return (
       <li key={person.amistadId || person.id} className="friend-row">
-        <div>
-          <p className="friend-name">{person.usuario?.nombre || person.nombre}</p>
-          <p className="friend-handle">@{person.usuario?.nombreUsuario || person.nombreUsuario}</p>
+        <div className="friend-identity">
+          {displayMediaUrl(person.usuario?.fotoUrl || person.fotoUrl) ? (
+            <img
+              className="friend-avatar"
+              src={displayMediaUrl(person.usuario?.fotoUrl || person.fotoUrl)}
+              alt=""
+              width="36"
+              height="36"
+            />
+          ) : null}
+          <div>
+            <p className="friend-name">{person.usuario?.nombre || person.nombre}</p>
+            <p className="friend-handle">@{person.usuario?.nombreUsuario || person.nombreUsuario}</p>
+          </div>
         </div>
         <div className="friend-actions">{actions}</div>
       </li>

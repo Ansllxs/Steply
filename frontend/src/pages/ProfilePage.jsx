@@ -17,16 +17,15 @@ import {
   profileActions,
   profilePhotoTypes,
 } from '../data/profile'
+import { uploadAvatar } from '../services/account'
 import { habitErrorText, progressSummary } from '../services/habits'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
-import { useProfile } from '../state/useProfile'
 import { loadImage } from '../utils/cropImage'
 
 export default function ProfilePage() {
   const { t } = usePreferences()
-  const { user, logout } = useAuth()
-  const { photoUrl, updatePhoto } = useProfile()
+  const { user, logout, updateUser } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const pendingUrlRef = useRef('')
@@ -103,8 +102,10 @@ export default function ProfilePage() {
     replacePendingUrl(url)
   }
 
-  function handleAccept(blob) {
-    updatePhoto(blob)
+  async function handleAccept(blob) {
+    const file = new File([blob], 'perfil.jpg', { type: blob.type || 'image/jpeg' })
+    const data = await uploadAvatar(file)
+    updateUser(data.usuario)
     setPhotoError('')
     setPhotoToast((current) => current + 1)
     setToastVisible(true)
@@ -125,8 +126,8 @@ export default function ProfilePage() {
               onChange={handlePhoto}
             />
             <label id="profile-photo-trigger" htmlFor="profile-photo-input" className="profile-photo">
-              {photoUrl ? (
-                <img key={photoUrl} className="is-preview" src={photoUrl} alt="" />
+              {user.fotoUrl ? (
+                <img key={user.fotoUrl} className="is-preview" src={user.fotoUrl} alt="" />
               ) : (
                 <img src={imageIcon} alt="" width="28" height="28" />
               )}
@@ -142,15 +143,15 @@ export default function ProfilePage() {
             <p className="profile-handle">{user.correo}</p>
           </div>
         </section>
-        {location.state?.savedLocally ? (
+        {location.state?.saved ? (
           <p className="auth-notice profile-save-note" role="status">
-            {t('profile.savedLocally')}
+            {t('profile.saved')}
           </p>
         ) : null}
-        {photoLoading ? <LoadingIndicator message={t('loading.image')} /> : null}
+        {photoLoading && !pendingUrl ? <LoadingIndicator message={t('loading.image')} /> : null}
         {photoError ? (
           <p className="field-error" role="alert">
-            {t(photoError)}
+            {photoError.startsWith('profile.') ? t(photoError) : photoError}
           </p>
         ) : null}
         {pendingUrl ? (
@@ -208,7 +209,7 @@ export default function ProfilePage() {
         floating
         open={toastVisible}
         token={photoToast}
-        title={t('profile.photoReady')}
+        title={t('profile.photoUpdated')}
         subtitle={t('profile.photoReadyDetail')}
         onClose={() => setToastVisible(false)}
       />

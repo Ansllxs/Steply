@@ -15,6 +15,9 @@ export const reglasEditarPerfil = [
   body('descripcion').optional({ values: 'null' }).isString().trim()
     .isLength({ max: 500 }).withMessage('La descripción puede tener como máximo 500 caracteres'),
   body('zonaHoraria').optional().isString().custom(esZonaHoraria),
+  body('nombreUsuario').optional().isString().trim().toLowerCase()
+    .matches(/^[\p{L}\p{N}_.]{1,30}$/u)
+    .withMessage('El nombre de usuario solo puede tener letras, números, puntos o guiones bajos (1 a 30)'),
 ];
 
 export const reglasBuscar = [
