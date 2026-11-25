@@ -5,6 +5,7 @@ import bunny from '../assets/saludo.png'
 import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
+import MediaImage from '../components/MediaImage'
 import { frequencyText, habitErrorText, isHabitId } from '../services/habits'
 import { displayMediaUrl } from '../services/media'
 import {
@@ -146,9 +147,7 @@ export default function GroupDetailPage() {
           {group.miembros.map((member) => (
             <li key={member.id} className="friend-row">
               <div className="friend-identity">
-                {displayMediaUrl(member.fotoUrl) ? (
-                  <img className="friend-avatar" src={displayMediaUrl(member.fotoUrl)} alt="" width="36" height="36" />
-                ) : null}
+                <MediaImage className="friend-avatar" src={displayMediaUrl(member.fotoUrl)} width="36" height="36" />
                 <div>
                   <p className="friend-name">{member.nombre}</p>
                   <p className="friend-handle">@{member.nombreUsuario}</p>
@@ -190,9 +189,7 @@ export default function GroupDetailPage() {
               {friends.map((item) => (
                 <li key={item.usuario.id} className="friend-row">
                   <div className="friend-identity">
-                    {displayMediaUrl(item.usuario.fotoUrl) ? (
-                      <img className="friend-avatar" src={displayMediaUrl(item.usuario.fotoUrl)} alt="" width="36" height="36" />
-                    ) : null}
+                    <MediaImage className="friend-avatar" src={displayMediaUrl(item.usuario.fotoUrl)} width="36" height="36" />
                     <div>
                       <p className="friend-name">{item.usuario.nombre}</p>
                       <p className="friend-handle">@{item.usuario.nombreUsuario}</p>

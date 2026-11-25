@@ -154,6 +154,8 @@ model Usuario {
   nombreUsuario String       @unique @map("nombre_usuario") @db.VarChar(30)
   /// Hash bcrypt (lo genera el backend). Nunca se guarda la contraseña.
   passwordHash  String       @map("password_hash") @db.VarChar(100)
+  /// Sube al cambiar la contraseña. Los tokens anteriores dejan de servir.
+  sesionVersion Int          @default(0) @map("sesion_version")
   fotoUrl       String?      @map("foto_url") @db.VarChar(500)
   fotoPublicId  String?      @map("foto_public_id") @db.VarChar(255)
   descripcion   String?      @db.VarChar(500)

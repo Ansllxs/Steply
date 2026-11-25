@@ -24,8 +24,8 @@ export function yo(req, res) {
 
 export async function cambiarPassword(req, res, next) {
   try {
-    await servicioAuth.cambiarPassword(req.usuario, req.body);
-    res.json({ mensaje: 'Contraseña actualizada' });
+    const token = await servicioAuth.cambiarPassword(req.usuario, req.body);
+    res.json({ mensaje: 'Contraseña actualizada', token });
   } catch (err) {
     next(err);
   }

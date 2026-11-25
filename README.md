@@ -22,12 +22,13 @@ Steply/
 
 ## Cómo instalar y correr el proyecto
 
-1. Clonar el repositorio y pasarse a la rama de su parte (`backend`, `database` o `frontend`).
+1. Clonar el repositorio. El trabajo integrado está en `main`.
 
-2. Instalar las librerías desde la raíz. Esto instala backend y database juntos.
+2. Instalar las librerías desde la raíz. Esto instala backend y database juntos. El frontend se instala en su carpeta.
 
 ```bash
 npm install
+cd frontend && npm install
 ```
 
 3. Levantar PostgreSQL con Docker, desde la raíz.
@@ -67,13 +68,22 @@ npm run db:migrate
 npm run db:seed
 ```
 
-6. Correr el backend en modo desarrollo.
+6. Correr el backend en modo desarrollo, desde la raíz.
 
 ```bash
 npm run dev
 ```
 
-7. Comprobar que todo está conectado abriendo estas direcciones.
+7. Correr el frontend en otra terminal.
+
+```bash
+cd frontend
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+La aplicación queda en `http://127.0.0.1:5173`. La API queda en `http://localhost:3000/api`.
+
+8. Comprobar que todo está conectado abriendo estas direcciones.
 
 - `http://localhost:3000/api/salud` muestra que el servidor está funcionando.
 - `http://localhost:3000/api/salud-bd` muestra la cantidad de usuarios (con el seed son 6).
@@ -83,6 +93,10 @@ npm run dev
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Corre el backend con reinicio automático |
+| `cd frontend && npm run dev` | Corre la aplicación |
+| `cd frontend && npm run lint` | Revisa el frontend |
+| `cd frontend && npm run build` | Genera la versión de producción del frontend |
+| `cd database && npm test` | Corre las pruebas de la base en `steply_test` |
 | `npm run db:migrate` | Aplica los cambios del esquema a la base |
 | `npm run db:seed` | Carga insignias y datos de prueba |
 | `npm run db:studio` | Abre un panel web para ver las tablas |
@@ -126,19 +140,19 @@ Todas las rutas empiezan con `/api` y reciben y devuelven JSON. Las que piden to
 |---|---|---|---|---|
 | GET | `/api/salud` | No | | 200 `{ ok, mensaje }` |
 | GET | `/api/salud-bd` | No | | 200 `{ ok, usuarios }` |
-| POST | `/api/auth/registro` | No | `{ "nombre": "Ana", "correo": "ana@ejemplo.com", "password": "Clave1234" }` | 201 `{ usuario, token }` |
-| POST | `/api/auth/login` | No | `{ "correo": "ana@ejemplo.com", "password": "Clave1234" }` | 200 `{ usuario, token }` |
+| POST | `/api/auth/registro` | No | `{ "nombre": "Ana", "nombreUsuario": "ana", "correo": "ana@ejemplo.com", "password": "Clave1234" }` | 201 `{ usuario, token }` |
+| POST | `/api/auth/login` | No | `{ "identificador": "ana", "password": "Clave1234" }` El identificador puede ser el correo o el usuario | 200 `{ usuario, token }` |
 | GET | `/api/auth/me` | Sí | | 200 `{ usuario }` |
-| POST | `/api/auth/cambiar-password` | Sí | `{ "actual": "Clave1234", "nueva": "Nueva12345" }` | 200 `{ mensaje }` |
+| POST | `/api/auth/cambiar-password` | Sí | `{ "actual": "Clave1234", "nueva": "Nueva12345" }` | 200 `{ mensaje, token }`. El token nuevo reemplaza al anterior. Los demás tokens de esa cuenta dejan de servir |
 
 ### Perfil y usuarios
 
 | Método | Ruta | Token | Cuerpo de ejemplo | Respuesta |
 |---|---|---|---|---|
 | GET | `/api/usuarios/me` | Sí | | 200 `{ usuario }` |
-| PATCH | `/api/usuarios/me` | Sí | `{ "nombre": "Ana", "descripcion": "Me gusta correr", "zonaHoraria": "America/Costa_Rica" }` (todo opcional) | 200 `{ usuario }` |
+| PATCH | `/api/usuarios/me` | Sí | `{ "nombre": "Ana", "nombreUsuario": "ana", "descripcion": "Me gusta correr", "zonaHoraria": "America/Costa_Rica" }` (todo opcional) | 200 `{ usuario }` |
 | PUT | `/api/usuarios/me/foto` | Sí | `multipart/form-data` con el archivo en el campo `foto` (JPG, PNG, WEBP o HEIC, máximo 5 MB) | 200 `{ usuario }` |
-| GET | `/api/usuarios?buscar=texto` | Sí | Busca por nombre o correo, mínimo 2 letras | 200 `{ usuarios: [{ id, nombre, fotoUrl }] }` |
+| GET | `/api/usuarios?buscar=ana` | Sí | Busca por nombre de usuario, de 2 a 30 caracteres. No devuelve correos | 200 `{ usuarios }` |
 | GET | `/api/usuarios/:id` | Sí | | 200 `{ usuario: { id, nombre, fotoUrl, descripcion, puntosTotales, insignias } }` |
 
 ### Amistades
@@ -168,6 +182,18 @@ Todas las rutas empiezan con `/api` y reciben y devuelven JSON. Las que piden to
 
 | GET | `/api/grupos/:id/retos` | Sí, ser miembro | `?terminados=true` para incluir los terminados | 200 `{ retos }` |
 | GET | `/api/grupos/:id/ranking` | Sí, ser miembro | | 200 `{ ranking }` |
+
+### Invitaciones a grupos
+
+| Método | Ruta | Token | Cuerpo de ejemplo | Respuesta |
+|---|---|---|---|---|
+| GET | `/api/grupos/invitaciones` | Sí | | 200 `{ invitaciones }` recibidas |
+| POST | `/api/grupos/:id/invitaciones` | Sí, admin | `{ "usuarioId": "<uuid>" }`. La persona ya debe ser amiga y no miembro | 201 `{ invitacion }` |
+| GET | `/api/grupos/:id/invitaciones` | Sí, admin | | 200 `{ invitaciones }` |
+| POST | `/api/grupos/invitaciones/:id/aceptar` | Sí, invitado | Crea la membresía | 200 |
+| POST | `/api/grupos/invitaciones/:id/rechazar` | Sí, invitado | | 200 |
+
+`POST /api/grupos/unirse` con el código sigue agregando al grupo de inmediato. La invitación entre amigos no da membresía hasta que se acepta.
 
 "Admin" quiere decir admin del grupo o administrador general. El código de invitación solo lo ven los admins. Un grupo siempre conserva al menos un admin, y si el último admin sale, la base nombra admin al integrante más antiguo.
 
@@ -237,7 +263,7 @@ Las fotos solo se aceptan si `cumplido` es true. Cada foto puede pesar hasta 5 M
 
 El servidor ejecuta el cierre diario al arrancar y después cada hora. El cierre marca los días no cumplidos, aplica los castigos semanales y termina los retos que ya pasaron su fecha de fin. Se puede repetir sin problema.
 
-Reglas. El correo se guarda en minúsculas y no se puede repetir (409). La contraseña debe tener al menos 8 caracteres. Si el correo o la contraseña están mal, el login responde 401 con el mismo mensaje. Una cuenta suspendida recibe 403.
+Reglas. El correo y el nombre de usuario se guardan en minúsculas y no se pueden repetir (409). La contraseña debe tener al menos 8 caracteres. Si el correo, el usuario o la contraseña están mal, el login responde 401 con el mismo mensaje. Una cuenta suspendida recibe 403. Cambiar la contraseña invalida los tokens anteriores.
 
 Todos los errores tienen esta forma.
 
@@ -284,7 +310,15 @@ El backend y el paquete de la base se despliegan juntos desde la raíz del repos
 |---|---|
 | `DATABASE_URL` | La de la base del paso 1 |
 | `JWT_SECRET` | Una clave larga y aleatoria, distinta a la de desarrollo |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Las de la cuenta de Cloudinary. Sin ellas las fotos se guardan en memoria y se pierden |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Las de la cuenta de Cloudinary. Sin ellas las fotos se guardan en memoria y se pierden al reiniciar el proceso. También se acepta `CLOUDINARY_URL` |
 | `NODE_ENV` | `production` |
+
+## Limitaciones conocidas
+
+- Sin credenciales de Cloudinary, la foto de perfil y la evidencia se pueden ver mientras el backend sigue encendido. Después de reiniciarlo, la referencia queda en PostgreSQL y la imagen ya no se puede mostrar. La interfaz oculta la imagen rota. No se guardan fotos en Base64.
+- Los interruptores de notificaciones guardan una preferencia en el dispositivo. Steply no envía correos ni notificaciones push.
+- Cambiar la contraseña emite un token nuevo e invalida los anteriores. No hay correo de restablecimiento.
+- El correo de la cuenta se muestra en ajustes y no se puede cambiar desde la aplicación.
+- Los usuarios del seed solo existen después de `npm run db:seed`. La contraseña de esos usuarios es `Steply123!`.
 
 El hosting pone el `PORT` solo. Para cargar los datos de prueba en la base desplegada, una sola vez, se corre `npm run db:seed` con la `DATABASE_URL` de esa base.

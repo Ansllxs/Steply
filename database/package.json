@@ -21,7 +21,7 @@
     "test": "npm run test:db:prepare && npm run test:all",
     "test:all": "node --env-file=.env.test --test --test-concurrency=1 \"test/**/*.test.js\"",
     "test:unit": "node --test \"test/unit/*.test.js\"",
-    "test:db:prepare": "dotenv -e .env.test -- prisma migrate deploy",
+    "test:db:prepare": "dotenv run -f .env.test -- prisma migrate deploy",
     "test:integracion": "node --env-file=.env.test --test --test-concurrency=1 \"test/integracion/*.test.js\"",
     "prototipo": "node --env-file=.env prototipo/servidor.js"
   },

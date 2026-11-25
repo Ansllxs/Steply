@@ -5,6 +5,7 @@ import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
 import { changePassword } from '../services/account'
+import { saveToken } from '../services/api'
 import { habitErrorText } from '../services/habits'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
@@ -58,7 +59,8 @@ export default function SettingsPage() {
     setSavingPassword(true)
     setPasswordError('')
     try {
-      await changePassword({ actual: currentPassword, nueva: nextPassword })
+      const data = await changePassword({ actual: currentPassword, nueva: nextPassword })
+      if (data?.token) saveToken(data.token)
       setCurrentPassword('')
       setNextPassword('')
       setConfirmPassword('')

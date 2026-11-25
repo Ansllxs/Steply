@@ -4,6 +4,7 @@ import BottomNav from '../components/BottomNav'
 import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import LoadingIndicator from '../components/LoadingIndicator'
+import MediaImage from '../components/MediaImage'
 import { habitErrorText } from '../services/habits'
 import { displayMediaUrl } from '../services/media'
 import {
@@ -96,15 +97,12 @@ export default function FriendsPage() {
     return (
       <li key={person.amistadId || person.id} className="friend-row">
         <div className="friend-identity">
-          {displayMediaUrl(person.usuario?.fotoUrl || person.fotoUrl) ? (
-            <img
-              className="friend-avatar"
-              src={displayMediaUrl(person.usuario?.fotoUrl || person.fotoUrl)}
-              alt=""
-              width="36"
-              height="36"
-            />
-          ) : null}
+          <MediaImage
+            className="friend-avatar"
+            src={displayMediaUrl(person.usuario?.fotoUrl || person.fotoUrl)}
+            width="36"
+            height="36"
+          />
           <div>
             <p className="friend-name">{person.usuario?.nombre || person.nombre}</p>
             <p className="friend-handle">@{person.usuario?.nombreUsuario || person.nombreUsuario}</p>

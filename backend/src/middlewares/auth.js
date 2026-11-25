@@ -18,6 +18,10 @@ export async function verificarToken(req, res, next) {
 
     // obtenerUsuario falla si la cuenta no existe o está suspendida
     req.usuario = await permisos.obtenerUsuario(prisma, datos.id);
+    const emitida = Number.isInteger(datos.sv) ? datos.sv : 0;
+    if (emitida !== (req.usuario.sesionVersion ?? 0)) {
+      throw noAutenticado('La sesión ya no es válida. Vuelve a iniciar sesión.');
+    }
     next();
   } catch (err) {
     next(err);

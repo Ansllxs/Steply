@@ -11,12 +11,16 @@ export function noAutenticado(mensaje) {
 
 // Quita los campos que nunca deben salir en una respuesta
 export function limpiarUsuario(usuario) {
-  const { passwordHash, fotoPublicId, ...resto } = usuario;
+  const { passwordHash, fotoPublicId, sesionVersion, ...resto } = usuario;
   return resto;
 }
 
 export function crearToken(usuario) {
-  return jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { id: usuario.id, rol: usuario.rol, sv: usuario.sesionVersion ?? 0 },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' },
+  );
 }
 
 function conflictoDeCuenta(error) {
@@ -66,7 +70,7 @@ export async function iniciarSesion({ identificador, password }) {
     : await prisma.usuario.findUnique({ where: { nombreUsuario: identificador } });
   // Mismo mensaje si falla el correo, el usuario o la contraseña, para no dar pistas
   const valida = usuario && (await bcrypt.compare(password, usuario.passwordHash));
-  if (!valida) throw noAutenticado('Correo o contraseña incorrectos');
+  if (!valida) throw noAutenticado('Correo, usuario o contraseña incorrectos');
 
   if (usuario.estado !== 'ACTIVA') throw sinPermiso('La cuenta está suspendida');
 
@@ -82,5 +86,9 @@ export async function cambiarPassword(usuario, { actual, nueva }) {
   if (!valida) throw validacion('La contraseña actual no es correcta');
 
   const passwordHash = await bcrypt.hash(nueva, 10);
-  await prisma.usuario.update({ where: { id: usuario.id }, data: { passwordHash } });
+  const actualizado = await prisma.usuario.update({
+    where: { id: usuario.id },
+    data: { passwordHash, sesionVersion: { increment: 1 } },
+  });
+  return crearToken(actualizado);
 }

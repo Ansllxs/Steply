@@ -5,6 +5,7 @@ import cameraIcon from '../assets/icon-camera.svg'
 import checkIcon from '../assets/icon-check.svg'
 import Button from '../components/Button'
 import LoadingIndicator from '../components/LoadingIndicator'
+import MediaImage from '../components/MediaImage'
 import TextField from '../components/TextField'
 import {
   calendarDate,
@@ -201,7 +202,7 @@ export default function HabitDetailPage() {
         </Link>
         {photos.map((photo) => (
           <figure className="evidence-preview" key={photo.id}>
-            <img src={displayMediaUrl(photo.url, photo.publicId)} alt="" />
+            <MediaImage src={displayMediaUrl(photo.url, photo.publicId)} />
           </figure>
         ))}
         {editing ? (

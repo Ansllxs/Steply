@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import celebration from '../assets/celebracion.png'
 import LoadingIndicator from '../components/LoadingIndicator'
+import MediaImage from '../components/MediaImage'
 import { habitErrorText, isHabitId } from '../services/habits'
 import { displayMediaUrl } from '../services/media'
 import { getGroup, groupRanking } from '../services/social'
@@ -95,9 +96,7 @@ export default function GroupRankingPage() {
                   {entry.posicion}
                 </span>
                 <span className="rank-name friend-identity">
-                  {displayMediaUrl(entry.usuario.fotoUrl) ? (
-                    <img className="friend-avatar" src={displayMediaUrl(entry.usuario.fotoUrl)} alt="" width="36" height="36" />
-                  ) : null}
+                  <MediaImage className="friend-avatar" src={displayMediaUrl(entry.usuario.fotoUrl)} width="36" height="36" />
                   {entry.usuario.nombre}
                 </span>
                 <span className="rank-points">{t('ranking.points', { count: entry.puntos })}</span>

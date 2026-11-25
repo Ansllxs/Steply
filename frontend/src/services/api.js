@@ -31,6 +31,15 @@ export function clearToken() {
   }
 }
 
+function abandonSession(response, auth) {
+  if (response.status !== 401 || !auth || !readToken()) return
+  clearToken()
+  const path = window.location.pathname
+  if (path !== '/' && path !== '/login' && path !== '/register') {
+    window.location.assign('/login')
+  }
+}
+
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { Accept: 'application/json' }
 
@@ -65,6 +74,7 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   }
 
   if (!response.ok) {
+    abandonSession(response, auth)
     throw new ApiError(response.status, data?.codigo, data?.mensaje, data?.detalles)
   }
 
@@ -103,6 +113,7 @@ export async function apiForm(path, { method = 'POST', formData, auth = true } =
   }
 
   if (!response.ok) {
+    abandonSession(response, auth)
     throw new ApiError(response.status, data?.codigo, data?.mensaje, data?.detalles)
   }
 

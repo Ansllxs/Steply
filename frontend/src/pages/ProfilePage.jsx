@@ -11,6 +11,7 @@ import Button from '../components/Button'
 import DashboardHeader from '../components/DashboardHeader'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
+import MediaImage from '../components/MediaImage'
 import ProfilePhotoEditor from '../components/ProfilePhotoEditor'
 import {
   maxProfilePhotoBytes,
@@ -126,11 +127,12 @@ export default function ProfilePage() {
               onChange={handlePhoto}
             />
             <label id="profile-photo-trigger" htmlFor="profile-photo-input" className="profile-photo">
-              {user.fotoUrl ? (
-                <img key={user.fotoUrl} className="is-preview" src={user.fotoUrl} alt="" />
-              ) : (
-                <img src={imageIcon} alt="" width="28" height="28" />
-              )}
+              <MediaImage
+                key={user.fotoUrl || 'sin-foto'}
+                src={user.fotoUrl}
+                className="is-preview"
+                fallback={<img src={imageIcon} alt="" width="28" height="28" />}
+              />
             </label>
             <label className="profile-edit" htmlFor="profile-photo-input">
               <span className="visually-hidden">{t('profile.changePhoto')}</span>
