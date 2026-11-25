@@ -276,3 +276,93 @@ button.habit-card:hover {
 .bottom-nav-item > span:last-child {
   margin-top: 4px;
 }
+
+.dashboard.home .dashboard-frame {
+  padding-top: 18px;
+}
+
+.dashboard.home .dashboard-kicker {
+  margin-top: 12px;
+}
+
+.dashboard.home h1.home-greeting {
+  margin-top: 2px;
+  font-size: 22px;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.home-stats div {
+  min-width: 72px;
+}
+
+.home-stats dd {
+  margin: 0;
+  color: var(--color-purple);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 26px;
+  overflow-wrap: anywhere;
+}
+
+.home-stats dt {
+  margin: 1px 0 0;
+  color: var(--color-secondary-text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.dashboard.home .motivation {
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-radius: 16px;
+}
+
+.dashboard.home .motivation-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+}
+
+.dashboard.home .motivation-bunny {
+  top: 4px;
+  left: 6px;
+  width: 40px;
+}
+
+.dashboard.home .motivation h2 {
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.dashboard.home .motivation p {
+  margin-top: 2px;
+}
+
+.dashboard.home .dashboard-section {
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.dashboard.home .habit-list {
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dashboard.home .dashboard-actions {
+  margin-top: 16px;
+}

@@ -6,7 +6,7 @@ import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
 import MediaImage from '../components/MediaImage'
-import { frequencyText, habitErrorText, isHabitId } from '../services/habits'
+import { durationText, frequencyText, habitErrorText, isHabitId } from '../services/habits'
 import { displayMediaUrl } from '../services/media'
 import {
   getGroup,
@@ -18,7 +18,7 @@ import {
 import { usePreferences } from '../state/usePreferences'
 
 export default function GroupDetailPage() {
-  const { t } = usePreferences()
+  const { t, language } = usePreferences()
   const { id } = useParams()
   const [result, setResult] = useState({ id: '', status: 'loading', group: null, retos: [], error: '' })
   const [inviting, setInviting] = useState(false)
@@ -166,7 +166,7 @@ export default function GroupDetailPage() {
                 habit={{
                   id: reto.id,
                   title: reto.nombre,
-                  status: frequencyText(reto, t),
+                  status: `${frequencyText(reto, t)} · ${durationText(reto, t, language)}`,
                   icon: 'book',
                 }}
                 state={{ from: `/groups/${group.id}` }}

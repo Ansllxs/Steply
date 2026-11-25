@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import TextField from '../components/TextField'
-import { createPersonalHabit, habitErrorText } from '../services/habits'
+import { addCalendarMonths, calendarDate, createPersonalHabit, habitErrorText } from '../services/habits'
 import { listGroups } from '../services/social'
+import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 const types = [{ id: 'personal' }, { id: 'group' }]
@@ -23,7 +24,25 @@ const dayOptions = [
   { value: 7, id: 'd' },
 ]
 
-function validateHabit(name, frequency, times, days, type, groupId) {
+const durations = [
+  { id: '1', months: 1, label: 'habit.duration1' },
+  { id: '3', months: 3, label: 'habit.duration3' },
+  { id: '6', months: 6, label: 'habit.duration6' },
+  { id: '12', months: 12, label: 'habit.duration12' },
+  { id: 'custom', label: 'habit.durationCustom' },
+  { id: 'none', label: 'habit.durationNone' },
+]
+
+const datePattern = /^\d{4}-\d{2}-\d{2}$/
+
+function isRealDate(value) {
+  if (!datePattern.test(value)) return false
+  const [year, month, day] = value.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return date.toISOString().slice(0, 10) === value
+}
+
+function validateHabit(name, frequency, times, days, type, groupId, duration, endDate, start) {
   const errors = {}
   const trimmed = name.trim()
 
@@ -36,11 +55,19 @@ function validateHabit(name, frequency, times, days, type, groupId) {
 
   if (type === 'group' && !groupId) errors.group = 'validation.group'
 
+  if (!duration) errors.duration = 'validation.duration'
+  else if (duration === 'custom') {
+    if (!endDate) errors.endDate = 'validation.endDate'
+    else if (!isRealDate(endDate)) errors.endDate = 'validation.dateInvalid'
+    else if (endDate < start) errors.endDate = 'validation.endBeforeStart'
+  }
+
   return errors
 }
 
 export default function CreateHabitPage() {
   const { t } = usePreferences()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [params] = useSearchParams()
@@ -52,10 +79,14 @@ export default function CreateHabitPage() {
   const [frequency, setFrequency] = useState('')
   const [times, setTimes] = useState('')
   const [days, setDays] = useState([])
+  const [duration, setDuration] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const lockRef = useRef(false)
   const backTo = location.state?.from || (presetGroup ? `/groups/${presetGroup}/manage` : '/habits')
+  const start = calendarDate(user?.zonaHoraria || 'America/Costa_Rica')
 
   useEffect(() => {
     let active = true
@@ -81,24 +112,28 @@ export default function CreateHabitPage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (submitting) return
+    if (lockRef.current) return
 
-    const nextErrors = validateHabit(name, frequency, times, days, type, groupId)
+    const nextErrors = validateHabit(name, frequency, times, days, type, groupId, duration, endDate, start)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
       setNotice('')
       return
     }
 
+    const selected = durations.find((item) => item.id === duration)
     const body = {
       tipo: type === 'group' ? 'GRUPAL' : 'PERSONAL',
       nombre: name.trim(),
       frecuencia: frequency,
+      fechaInicio: start,
+      fechaFin: duration === 'none' ? null : duration === 'custom' ? endDate : addCalendarMonths(start, selected.months),
     }
     if (type === 'group') body.grupoId = groupId
     if (frequency === 'SEMANAL') body.vecesPorSemana = Number(times)
     if (frequency === 'DIAS_ESPECIFICOS') body.diasSemana = days
 
+    lockRef.current = true
     setSubmitting(true)
     setNotice('')
     try {
@@ -114,9 +149,12 @@ export default function CreateHabitPage() {
       if (campo === 'nombre') setErrors({ name: habitErrorText(error, t) })
       else if (campo === 'frecuencia' || campo === 'vecesPorSemana' || campo === 'diasSemana') {
         setErrors({ frequency: habitErrorText(error, t) })
+      } else if (campo === 'fechaInicio' || campo === 'fechaFin') {
+        setErrors({ endDate: habitErrorText(error, t) })
       } else {
         setNotice(habitErrorText(error, t))
       }
+      lockRef.current = false
       setSubmitting(false)
     }
   }
@@ -256,6 +294,48 @@ export default function CreateHabitPage() {
                 <p className="field-error" role="alert">{t(errors.days)}</p>
               ) : null}
             </fieldset>
+          ) : null}
+          <fieldset className="type-field">
+            <legend>{t('habit.duration')}</legend>
+            <div className="type-options duration" role="radiogroup" aria-label={t('habit.duration')}>
+              {durations.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={duration === item.id ? 'type-option is-selected' : 'type-option'}
+                  role="radio"
+                  aria-checked={duration === item.id}
+                  disabled={submitting}
+                  onClick={() => setDuration(item.id)}
+                >
+                  {t(item.label)}
+                </button>
+              ))}
+            </div>
+            {errors.duration ? (
+              <p className="field-error" role="alert">{t(errors.duration)}</p>
+            ) : null}
+          </fieldset>
+          {duration === 'custom' ? (
+            <div className="field">
+              <label htmlFor="habit-end">{t('habit.endDate')}</label>
+              <input
+                id="habit-end"
+                name="end"
+                type="date"
+                value={endDate}
+                min={start}
+                disabled={submitting}
+                aria-invalid={Boolean(errors.endDate)}
+                aria-describedby={errors.endDate ? 'habit-end-error' : undefined}
+                onChange={(event) => setEndDate(event.target.value)}
+              />
+              {errors.endDate ? (
+                <p className="field-error" id="habit-end-error" role="alert">
+                  {errors.endDate.startsWith('validation.') ? t(errors.endDate) : errors.endDate}
+                </p>
+              ) : null}
+            </div>
           ) : null}
           <div className="create-habit-actions">
             <Button type="submit" disabled={submitting}>

@@ -76,6 +76,25 @@ export function calendarDate(timeZone = 'America/Costa_Rica', now = new Date()) 
   }).format(now)
 }
 
+/**
+ * Suma meses de calendario. El día se recorta al último día del mes destino,
+ * así el 31 de enero más un mes cae en febrero y no en marzo.
+ * La fecha resultante es inclusiva: ese día todavía se puede registrar.
+ */
+export function addCalendarMonths(key, months) {
+  const [year, month, day] = key.split('-').map(Number)
+  const monthIndex = month - 1 + months
+  const targetYear = year + Math.floor(monthIndex / 12)
+  const targetMonth = ((monthIndex % 12) + 12) % 12
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate()
+  const targetDay = Math.min(day, lastDay)
+  return [
+    String(targetYear).padStart(4, '0'),
+    String(targetMonth + 1).padStart(2, '0'),
+    String(targetDay).padStart(2, '0'),
+  ].join('-')
+}
+
 export function shiftDate(key, days) {
   const [year, month, day] = key.split('-').map(Number)
   const date = new Date(Date.UTC(year, month - 1, day))
@@ -111,6 +130,12 @@ export function formatCalendarDate(key, language) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(Date.UTC(year, month - 1, day)))
+}
+
+export function durationText(reto, t, language) {
+  const end = recordDate(reto.fechaFin)
+  if (!end) return t('detail.noEnd')
+  return t('detail.until', { date: formatCalendarDate(end, language) })
 }
 
 export function frequencyText(reto, t) {

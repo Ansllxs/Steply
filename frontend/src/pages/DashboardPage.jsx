@@ -57,23 +57,31 @@ export default function DashboardPage() {
   const percent = scheduled.length ? Math.round((completed / scheduled.length) * 100) : 0
 
   return (
-    <main className="dashboard">
+    <main className="dashboard home">
       <div className="dashboard-frame">
-        <DashboardHeader />
+        <DashboardHeader showWordmark={false} />
         <p className="dashboard-kicker">{t('dashboard.kicker')}</p>
-        <h1>{t('dashboard.hello', { name: user.nombre })}</h1>
+        <h1 className="home-greeting">{t('dashboard.hello', { name: user.nombre })}</h1>
         {status === 'loading' ? <LoadingIndicator /> : null}
         {status === 'error' ? <p className="empty-note" role="alert">{error}</p> : null}
         {status === 'ready' && summary ? (
           <>
-            <p className="dashboard-stats">
-              {t(summary.rachaActual === 1 ? 'dashboard.statsOne' : 'dashboard.stats', { streak: summary.rachaActual, points: summary.puntosTotales })}
-            </p>
-            {scheduled.length ? (
-              <p className="dashboard-stats">
-                {t('dashboard.completion', { done: completed, total: scheduled.length, percent })}
-              </p>
-            ) : null}
+            <dl className="home-stats">
+              <div>
+                <dd>{summary.rachaActual}</dd>
+                <dt>{t(summary.rachaActual === 1 ? 'dashboard.streakOne' : 'dashboard.streakMany')}</dt>
+              </div>
+              <div>
+                <dd>{summary.puntosTotales}</dd>
+                <dt>{t('dashboard.pointsLabel')}</dt>
+              </div>
+              {scheduled.length ? (
+                <div>
+                  <dd>{percent}%</dd>
+                  <dt>{t('dashboard.todayRatio', { done: completed, total: scheduled.length })}</dt>
+                </div>
+              ) : null}
+            </dl>
             <section className="motivation" aria-label={t('common.steplyMessage')}>
               <div className="motivation-avatar">
                 <img className="motivation-bunny" src={bunny} alt="" width="69" height="78" />

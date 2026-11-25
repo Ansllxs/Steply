@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
 import logo from '../assets/logo.png'
@@ -13,15 +13,21 @@ import { usePreferences } from '../state/usePreferences'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function normalizeIdentifier(identifier) {
+  const value = identifier.trim()
+  if (value.startsWith('@') && !value.includes('@', 1)) return value.slice(1)
+  return value
+}
+
 function validateLogin(identifier, password) {
   const errors = {}
-  const value = identifier.trim()
+  const value = normalizeIdentifier(identifier)
 
   if (!value) {
     errors.identifier = 'validation.identifierRequired'
   } else if (value.includes('@')) {
     if (!emailPattern.test(value)) errors.identifier = 'validation.emailInvalid'
-  } else if (/\s/.test(identifier) || !USERNAME_PATTERN.test(value)) {
+  } else if (!USERNAME_PATTERN.test(value)) {
     errors.identifier = 'validation.usernameCharset'
   }
 
@@ -50,10 +56,11 @@ export default function LoginPage() {
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const lockRef = useRef(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (submitting) return
+    if (lockRef.current) return
 
     const nextErrors = validateLogin(identifier, password)
     setErrors(nextErrors)
@@ -61,10 +68,11 @@ export default function LoginPage() {
 
     if (Object.keys(nextErrors).length > 0) return
 
+    lockRef.current = true
     setSubmitting(true)
 
     try {
-      await login({ identificador: identifier.trim(), password })
+      await login({ identificador: normalizeIdentifier(identifier), password })
       setSuccess(true)
       await successDelay()
       finishTransition()
@@ -75,6 +83,7 @@ export default function LoginPage() {
       const result = describeApiError(error)
       setErrors(result.fields)
       setNotice(result.form)
+      lockRef.current = false
       setSubmitting(false)
     }
   }

@@ -4,12 +4,12 @@ import backIcon from '../assets/back.svg'
 import Button from '../components/Button'
 import HabitCard from '../components/HabitCard'
 import LoadingIndicator from '../components/LoadingIndicator'
-import { frequencyText, habitErrorText, isHabitId } from '../services/habits'
+import { durationText, frequencyText, habitErrorText, isHabitId } from '../services/habits'
 import { getGroup, groupChallenges } from '../services/social'
 import { usePreferences } from '../state/usePreferences'
 
 export default function ManageGroupHabitsPage() {
-  const { t } = usePreferences()
+  const { t, language } = usePreferences()
   const { id } = useParams()
   const [result, setResult] = useState({ id: '', status: 'loading', group: null, retos: [], error: '' })
 
@@ -86,7 +86,12 @@ export default function ManageGroupHabitsPage() {
             {result.retos.map((reto) => (
               <HabitCard
                 key={reto.id}
-                habit={{ id: reto.id, title: reto.nombre, status: frequencyText(reto, t), icon: 'book' }}
+                habit={{
+                  id: reto.id,
+                  title: reto.nombre,
+                  status: `${frequencyText(reto, t)} · ${durationText(reto, t, language)}`,
+                  icon: 'book',
+                }}
                 to={`/habits/${reto.id}`}
                 state={{ from: `/groups/${group.id}/manage` }}
               />

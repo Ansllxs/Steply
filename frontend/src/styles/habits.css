@@ -132,6 +132,20 @@
   grid-template-columns: 1fr;
 }
 
+.type-options.duration {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.type-options.duration .type-option {
+  height: auto;
+  padding: 10px 12px;
+  white-space: normal;
+}
+
+.type-options.duration .type-option:last-child {
+  grid-column: 1 / -1;
+}
+
 .type-options.days {
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }

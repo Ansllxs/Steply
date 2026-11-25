@@ -28,6 +28,9 @@ export const reglasLogin = [
   body('identificador')
     .isString().withMessage('Ingresa tu correo o usuario')
     .trim()
+    .customSanitizer((valor) => (
+      valor.startsWith('@') && !valor.includes('@', 1) ? valor.slice(1) : valor
+    ))
     .toLowerCase()
     .notEmpty().withMessage('Ingresa tu correo o usuario')
     .custom((valor) => {

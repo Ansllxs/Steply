@@ -10,11 +10,14 @@ import TextField from '../components/TextField'
 import {
   calendarDate,
   deleteHabit,
+  durationText,
+  formatCalendarDate,
   frequencyText,
   getHabit,
   habitErrorText,
   habitHistory,
   isHabitId,
+  recordDate,
   updateHabit,
   weekMarks,
 } from '../services/habits'
@@ -23,7 +26,7 @@ import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
 export default function HabitDetailPage() {
-  const { t } = usePreferences()
+  const { t, language } = usePreferences()
   const { user } = useAuth()
   const { id } = useParams()
   const location = useLocation()
@@ -109,6 +112,16 @@ export default function HabitDetailPage() {
     ? (habit.grupo?.nombre || t('habit.groupType'))
     : t('habit.personal')
   const summary = `${frequencyText(habit, t)} · ${scopeLabel}${habit.meta ? ` · ${habit.meta}` : ''}`
+  const start = recordDate(habit.fechaInicio)
+  const end = recordDate(habit.fechaFin)
+  const paused = mine?.estado === 'PAUSADO'
+  const statusKey = habit.estado === 'FINALIZADO'
+    ? 'detail.statusFinished'
+    : paused
+      ? 'detail.statusPaused'
+      : end && today > end
+        ? 'detail.statusEnded'
+        : 'detail.statusActive'
 
   async function handleSave(event) {
     event.preventDefault()
@@ -164,6 +177,11 @@ export default function HabitDetailPage() {
         <p className="dashboard-kicker">{t('detail.kicker')}</p>
         <h1>{habit.nombre}</h1>
         <p className="dashboard-stats">{summary}</p>
+        <p className="dashboard-stats">
+          {start ? `${t('detail.starts', { date: formatCalendarDate(start, language) })} · ` : ''}
+          {durationText(habit, t, language)}
+          {` · ${t(statusKey)}`}
+        </p>
         {habit.descripcion ? <p className="dashboard-stats">{habit.descripcion}</p> : null}
         <h2 className="sheet-section">{t('detail.week')}</h2>
         <p className="dashboard-stats">{t('detail.weekNote')}</p>
