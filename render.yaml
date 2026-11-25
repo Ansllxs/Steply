@@ -1,0 +1,24 @@
+# Referencia para Render. No contiene secretos ni elige un plan de pago.
+# En el panel hay que confirmar la instancia antes de crearla.
+services:
+  - type: web
+    name: steply-api
+    runtime: node
+    buildCommand: npm ci && npm run db:deploy
+    startCommand: npm run start --workspace @steply/backend
+    healthCheckPath: /api/salud
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

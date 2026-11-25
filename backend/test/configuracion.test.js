@@ -81,7 +81,7 @@ test('el límite de intentos corta el undécimo acceso', () => {
 
 test('la URL del API de producción no cae en localhost', () => {
   assert.equal(resolveApiOrigin({ configured: 'https://api.ejemplo.com/', dev: false }), 'https://api.ejemplo.com');
-  assert.equal(resolveApiOrigin({ configured: '', dev: true }), 'http://localhost:3000');
+  assert.equal(resolveApiOrigin({ configured: '', dev: true, localOrigin: 'http://localhost:3000' }), 'http://localhost:3000');
   assert.equal(resolveApiOrigin({ configured: '  ', dev: false }), '');
   assert.equal(resolveApiOrigin({ configured: '', dev: false }), '');
 });

@@ -4,6 +4,7 @@ import { isAccessTokenExpired, readStoredToken, shouldAbandonSession, TOKEN_KEY 
 const API_URL = resolveApiOrigin({
   configured: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL,
   dev: import.meta.env.DEV,
+  localOrigin: import.meta.env.DEV ? 'http://localhost:3000' : '',
 })
 
 export { TOKEN_KEY }

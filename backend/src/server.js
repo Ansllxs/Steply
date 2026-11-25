@@ -11,9 +11,9 @@ if (problemas.length > 0) {
   process.exit(1);
 }
 
-const PORT = process.env.PORT || 3000;
-const servidor = app.listen(PORT, () => {
-  console.log(`Servidor en http://localhost:${PORT}`);
+const PORT = Number(process.env.PORT) || 3000;
+const servidor = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor escuchando en el puerto ${PORT}`);
   intentarLimpieza(almacenamientoEvidencias).catch(() => {
     console.error('No se pudo reintentar la limpieza de imágenes pendientes.');
   });

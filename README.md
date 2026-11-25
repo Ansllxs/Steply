@@ -296,48 +296,99 @@ La colección está en `backend/postman/Steply.postman_collection.json`. Se impo
 
 ## Despliegue
 
-El código queda listo para configurarse. Este repositorio no crea cuentas, no compra servicios y no despliega nada por sí solo.
+El repositorio no crea cuentas ni despliega solo. El frontend va en Vercel, el API en Render y PostgreSQL en Neon. Las fotos siguen en Cloudinary, solo en el backend.
 
-El backend y el paquete de la base se despliegan juntos desde la raíz, porque el backend usa `@steply/database`. El frontend se compila aparte y se publica como sitio estático. El hosting del frontend debe devolver `index.html` en las rutas de la aplicación, para que recargar `/habits` o `/groups` no falle.
+El frontend no depende de los otros paquetes: en Vercel la raíz es `frontend/`. El backend sí usa `@steply/database`, así que Render construye desde la raíz del repositorio. Prisma 6.19 queda en las dependencias de producción para que `npm ci` pueda generar el cliente. No hace falta una segunda URL de base: Render es un proceso continuo, no una función serverless. Use la conexión directa de Neon, la que no lleva `-pooler` en el host. Esa misma URL sirve para la aplicación y para `prisma migrate deploy`.
 
-1. Crear una base PostgreSQL y copiar su `DATABASE_URL`. En Neon y Supabase se agrega `?sslmode=require` si la URL no lo trae.
-2. Crear una cuenta de Cloudinary y copiar el nombre de la nube, la API key y el API secret. También sirve `CLOUDINARY_URL`.
-3. Crear el servicio del backend apuntando a este repositorio.
+### 1. Neon
 
-| Paso | Comando |
+1. Entre a [Neon](https://neon.tech) y cree un proyecto gratuito de PostgreSQL. La región puede ser la más cercana.
+2. En el panel, elija la conexión **directa**, no la pooled. El host no debe contener `-pooler`.
+3. Copie la URL. Debe empezar por `postgresql://` y traer `sslmode=require`. Esa será `DATABASE_URL`.
+4. No importe la base local ni ejecute el seed. La base de producción empieza vacía.
+
+### 2. Render
+
+Cree un **Web Service** manualmente desde el repositorio de GitHub, rama `main`. No use un plan de pago si el panel ofrece una instancia gratuita o de prueba. `render.yaml` documenta los mismos comandos y no guarda secretos; si al aplicarlo Render pide un plan de pago, cancele y cree el servicio a mano.
+
+| Campo | Valor |
 |---|---|
-| Instalar | `npm ci` |
-| Migraciones | `npm run db:deploy` |
-| Arrancar | `npm start --workspace @steply/backend` |
+| Root Directory | vacío, la raíz del repositorio |
+| Runtime | Node |
+| Build Command | `npm ci && npm run db:deploy` |
+| Start Command | `npm run start --workspace @steply/backend` |
+| Health Check Path | `/api/salud` |
 
-`npm run db:deploy` aplica las migraciones pendientes y no borra datos. No use `db:reset` ni `db:seed` en la base real. El seed crea cuentas de prueba.
+`npm run db:deploy` solo aplica migraciones ya guardadas en `database/prisma/migrations`. No borra datos y no ejecuta el seed. No use `db:reset`.
 
-4. Compilar el frontend con la dirección pública del backend.
+Variables, en el panel de Render, no en el repositorio:
 
-```bash
-cd frontend
-VITE_API_BASE_URL=https://api.ejemplo.com npm run build
-```
+| Variable | Valor |
+|---|---|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | URL directa de Neon |
+| `JWT_SECRET` | Clave nueva, propia, de al menos 32 caracteres |
+| `CORS_ORIGIN` | URL HTTPS del frontend. En el primer despliegue puede ser la que va a usar Vercel; se corrige en el paso 12 |
+| `CLOUDINARY_CLOUD_NAME` | Nombre de la nube |
+| `CLOUDINARY_API_KEY` | API key nueva, rotada |
+| `CLOUDINARY_API_SECRET` | API secret nuevo, rotado |
 
-El resultado queda en `frontend/dist`. `VITE_API_URL` sigue funcionando con el mismo significado. Si el build de producción no tiene ninguna de las dos, la aplicación avisa que falta la dirección del servidor y no llama a `localhost`.
+No vuelva a usar una API key que haya aparecido en un chat. No defina `PORT`: Render lo inyecta y el servidor escucha en `0.0.0.0`. Cloudinary también acepta `CLOUDINARY_URL` en lugar de las tres variables.
 
-5. Poner las variables en el panel del hosting, nunca en el repositorio.
+Después del primer despliegue abra `https://SU-SERVICIO.onrender.com/api/salud`. Debe responder `almacenamiento: "cloudinary"`. `GET /api/salud-bd` comprueba PostgreSQL y no muestra la URL.
 
-| Variable | Dónde | Valor |
-|---|---|---|
-| `DATABASE_URL` | Backend | URL de PostgreSQL |
-| `JWT_SECRET` | Backend | Clave propia de al menos 32 caracteres, distinta a la de desarrollo |
-| `NODE_ENV` | Backend | `production` |
-| `PORT` | Backend | La que asigne el hosting. Si no se define, usa 3000 |
-| `CORS_ORIGIN` | Backend | Origen público del frontend, por ejemplo `https://app.ejemplo.com`. Varios orígenes van separados por coma |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Backend | Credenciales de Cloudinary. También se acepta `CLOUDINARY_URL` |
-| `VITE_API_BASE_URL` | Frontend, al compilar | Dirección pública del backend, sin `/api` al final |
+### 3. Vercel
 
-En producción el servidor no arranca si falta la base, el secreto, el origen CORS o Cloudinary. Si las credenciales están incompletas, tampoco arranca. Una subida que el proveedor rechaza responde que la imagen no se guardó. El desarrollo, sin esas credenciales, sigue guardando las fotos en memoria solo mientras el proceso está encendido.
+Importe el mismo repositorio. La raíz del proyecto es `frontend`.
 
-`GET /api/salud` responde si el proceso vive y dice si el almacenamiento es `cloudinary`, `memoria` o `no-disponible`. `GET /api/salud-bd` comprueba PostgreSQL. Esas rutas no muestran secretos.
+| Campo | Valor |
+|---|---|
+| Root Directory | `frontend` |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| `VITE_API_BASE_URL` | URL HTTPS de Render, sin `/api` y sin barra final |
 
-Para apagar el proceso, el servidor espera a cerrar las conexiones al recibir SIGINT o SIGTERM.
+Esa variable se copia dentro del JavaScript al compilar. Si la cambia, hay que volver a desplegar el frontend. No ponga secretos en variables que empiecen por `VITE_`.
+
+`frontend/vercel.json` reescribe las rutas hacia `index.html`. Recargar `/habits`, `/profile` o `/groups` no debe devolver 404.
+
+### 4. Unir los dos orígenes
+
+1. Copie la URL HTTPS real de Vercel, sin barra final.
+2. En Render, ponga esa URL en `CORS_ORIGIN`.
+3. Guarde y espere el redespliegue. En producción el proceso no arranca si `CORS_ORIGIN` está vacío o es `*`.
+
+### Si algo falla
+
+| Síntoma | Qué revisar |
+|---|---|
+| 404 al recargar una ruta | Root Directory `frontend`, output `dist` y que exista `vercel.json` |
+| El navegador bloquea la API | `CORS_ORIGIN` es exactamente el origen de Vercel, con `https` y sin barra final. Luego redespliegue Render |
+| El servicio de Render no arranca | Los registros no deben mostrar el valor del secreto. Falta `DATABASE_URL`, `JWT_SECRET` de 32 caracteres, Cloudinary completo o `CORS_ORIGIN` |
+| Faltan tablas | El build debe incluir `npm run db:deploy`. No ejecute `db:reset` |
+| Credenciales de base inválidas | Use la URL directa de Neon, con `sslmode=require`, y vuelva a pegarla sin comillas de más |
+| La foto no se guarda | Credenciales nuevas de Cloudinary en Render. `/api/salud` debe decir `cloudinary` |
+| La app llama a localhost o dice que falta el servidor | `VITE_API_BASE_URL` en Vercel y un nuevo deploy del frontend |
+| La primera petición tarda | En un plan gratuito Render puede dormir el servicio. La siguiente petición lo despierta |
+
+La primera cuenta se crea desde la pantalla de registro. No copie los usuarios de desarrollo.
+
+### Prueba pública
+
+Hágala con dos cuentas nuevas, creadas en la aplicación publicada. No reutilice las de desarrollo y no las cree desde un script.
+
+1. Abra la página de inicio.
+2. Registre la primera cuenta e inicie sesión.
+3. Cree un hábito, márquelo como completado y confirme que los puntos cambian.
+4. Suba una foto, recargue la página y confirme que sigue ahí.
+5. Registre la segunda cuenta en otro navegador.
+6. Desde la primera, búsquela y envíe una solicitud de amistad. Acéptela con la segunda.
+7. Cree un grupo, invite a la segunda cuenta y acepte la invitación.
+8. Abra el ranking.
+9. Cierre sesión y vuelva a entrar.
+
+Nada de esto está desplegado todavía. Estas comprobaciones son locales: el build, las pruebas y la configuración del repositorio. Neon, Render y Vercel se crean a mano.
 
 ### Copia de seguridad
 
@@ -358,7 +409,7 @@ Una copia de la base se saca con `pg_dump` usando la `DATABASE_URL` correspondie
 
 ## Limitaciones conocidas
 
-- Sin credenciales de Cloudinary, en desarrollo la foto de perfil y la evidencia se pueden ver mientras el backend sigue encendido. Después de reiniciarlo, la referencia queda en PostgreSQL y la imagen ya no se puede mostrar. La interfaz oculta la imagen rota. No se guardan fotos en Base64. Esta integración no se probó contra una cuenta real de Cloudinary porque no hay credenciales.
+- Sin credenciales de Cloudinary, en desarrollo la foto de perfil y la evidencia se pueden ver mientras el backend sigue encendido. Después de reiniciarlo, la referencia queda en PostgreSQL y la imagen ya no se puede mostrar. La interfaz oculta la imagen rota. No se guardan fotos en Base64. En producción las fotos salen de Cloudinary y el servidor no arranca si faltan esas credenciales.
 - Los interruptores de notificaciones guardan una preferencia en el dispositivo. Steply no envía correos ni notificaciones push.
 - Cambiar la contraseña emite un token nuevo e invalida los anteriores. No hay correo de restablecimiento.
 - El correo de la cuenta se muestra en ajustes y no se puede cambiar desde la aplicación.
