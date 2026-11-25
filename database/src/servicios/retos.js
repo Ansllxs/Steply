@@ -359,7 +359,13 @@ export async function eliminarReto(actorId, retoId, { almacenamiento } = {}) {
     return ids;
   });
 
-  const limpieza = await intentarLimpieza(almacenamiento, evidenciasPorBorrar);
+  let limpieza = { eliminados: [], fallidos: [] };
+  try {
+    limpieza = await intentarLimpieza(almacenamiento, evidenciasPorBorrar);
+  } catch {
+    console.error('No se pudieron borrar las imágenes del hábito eliminado. Se reintentará más tarde.');
+    limpieza = { eliminados: [], fallidos: evidenciasPorBorrar };
+  }
   return { evidenciasPorBorrar, limpieza };
 }
 

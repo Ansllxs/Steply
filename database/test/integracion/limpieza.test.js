@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, beforeEach, describe, test } from 'node:test';
 import { crearAlmacenamientoMemoria } from '../../src/almacenamiento/cloudinary.js';
-import { conLimpiezaPosterior } from '../../src/servicios/limpieza.js';
+import { conLimpiezaPosterior, intentarLimpieza } from '../../src/servicios/limpieza.js';
 import * as evidencias from '../../src/servicios/evidencias.js';
 import * as registros from '../../src/servicios/registros.js';
 import * as retos from '../../src/servicios/retos.js';
@@ -97,6 +97,17 @@ describe('limpieza de evidencias', () => {
     assert.equal(cambio.limpieza.eliminados.length, 1);
     assert.equal(await prisma.limpiezaPendiente.count(), 0);
     assert.ok(cambio.participante.puntos < 10);
+  });
+
+  test('una lista vacía no borra imágenes pendientes de otro flujo', async () => {
+    await prisma.limpiezaPendiente.create({ data: { publicId: 'steply/perfiles/ajena' } });
+    const llamadas = [];
+    const resultado = await intentarLimpieza({
+      eliminarVarios: async (ids) => llamadas.push(ids),
+    }, []);
+    assert.deepEqual(resultado, { eliminados: [], fallidos: [] });
+    assert.deepEqual(llamadas, []);
+    assert.equal(await prisma.limpiezaPendiente.count(), 1);
   });
 
   test('si la transacción falla no se borra la imagen', async () => {
