@@ -12,19 +12,17 @@ export function manejadorErrores(err, req, res, next) {
     err = validacion('El cuerpo de la petición no es un JSON válido');
   }
 
-  // Errores de multer, por ejemplo una foto de más de 5 MB o demasiadas fotos
   if (err.name === 'MulterError') {
     const mensajes = {
       LIMIT_FILE_SIZE: 'La imagen debe pesar como máximo 5 MB',
       LIMIT_FILE_COUNT: 'Se permiten como máximo 5 fotos',
+      LIMIT_UNEXPECTED_FILE: 'No se pudo procesar el archivo',
     };
     err = validacion(mensajes[err.code] || 'No se pudo procesar el archivo', { campo: err.field });
   }
 
-  // Errores de multer, por ejemplo una foto de más de 5 MB o demasiadas fotos
-  if (err.name === 'MulterError') {
-    const mensajes = { LIMIT_FILE_SIZE: 'La imagen debe pesar como máximo 5 MB', LIMIT_FILE_COUNT: 'Se permiten como máximo 5 fotos' };
-    err = validacion(mensajes[err.code] || 'No se pudo procesar el archivo', { campo: err.field });
+  if (err.type === 'entity.too.large') {
+    err = validacion('La petición es demasiado grande');
   }
 
   const error = traducirErrorBD(err);

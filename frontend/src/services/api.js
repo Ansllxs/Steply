@@ -1,4 +1,9 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+import { resolveApiOrigin } from './api-origin'
+
+const API_URL = resolveApiOrigin({
+  configured: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL,
+  dev: import.meta.env.DEV,
+})
 const TOKEN_KEY = 'steply-token'
 
 export class ApiError extends Error {
@@ -40,6 +45,13 @@ function abandonSession(response, auth) {
   }
 }
 
+function requestUrl(path) {
+  if (!API_URL) {
+    throw new ApiError(0, 'CONFIG', 'La aplicación no tiene configurada la dirección del servidor.')
+  }
+  return `${API_URL}/api${path}`
+}
+
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { Accept: 'application/json' }
 
@@ -51,9 +63,10 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   }
 
   let response
+  const url = requestUrl(path)
 
   try {
-    response = await fetch(`${API_URL}/api${path}`, {
+    response = await fetch(url, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -90,9 +103,10 @@ export async function apiForm(path, { method = 'POST', formData, auth = true } =
   }
 
   let response
+  const url = requestUrl(path)
 
   try {
-    response = await fetch(`${API_URL}/api${path}`, {
+    response = await fetch(url, {
       method,
       headers,
       body: formData,

@@ -14,6 +14,7 @@ export const CODIGOS = Object.freeze({
   NO_ENCONTRADO: 404,
   CONFLICTO: 409,
   FUERA_DE_TIEMPO: 422,
+  NO_DISPONIBLE: 503,
 });
 
 export class ErrorSteply extends Error {
@@ -37,6 +38,8 @@ export const sinPermiso = (msg = 'No tienes permiso para realizar esta acción')
 export const noEncontrado = (msg = 'Recurso no encontrado') => new ErrorSteply('NO_ENCONTRADO', msg);
 export const conflicto = (msg, detalles) => new ErrorSteply('CONFLICTO', msg, detalles);
 export const fueraDeTiempo = (msg) => new ErrorSteply('FUERA_DE_TIEMPO', msg);
+export const noDisponible = (msg = 'El almacenamiento de fotos no está disponible') =>
+  new ErrorSteply('NO_DISPONIBLE', msg);
 
 /**
  * Convierte errores de Prisma/PostgreSQL en ErrorSteply cuando se reconocen.

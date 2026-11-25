@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import { desconectar } from '@steply/database';
 import app from './app.js';
+import { validarArranque } from './config/entorno.js';
 import { iniciarCierreDiario } from './services/cierreDiario.js';
 
-// Sin estas variables el servidor no puede funcionar, así que se avisa y se detiene
-const faltantes = ['DATABASE_URL', 'JWT_SECRET'].filter((nombre) => !process.env[nombre]);
-if (faltantes.length > 0) {
-  console.error(`Faltan variables en backend/.env: ${faltantes.join(', ')}. Copie backend/.env.example y complételo.`);
+const problemas = validarArranque(process.env);
+if (problemas.length > 0) {
+  console.error(problemas.join('\n'));
   process.exit(1);
 }
 
@@ -16,13 +16,22 @@ const servidor = app.listen(PORT, () => {
 });
 
 const intervaloCierre = iniciarCierreDiario();
+let cerrando = false;
 
-// Al apagar (Ctrl+C o el hosting), se detiene el cierre y se cierra la conexión a la base
-async function apagar() {
+function apagar() {
+  if (cerrando) return;
+  cerrando = true;
   clearInterval(intervaloCierre);
-  servidor.close();
-  await desconectar();
-  process.exit(0);
+  const forzar = setTimeout(() => process.exit(1), 10000);
+  forzar.unref();
+  servidor.close(async () => {
+    try {
+      await desconectar();
+    } finally {
+      clearTimeout(forzar);
+      process.exit(0);
+    }
+  });
 }
 process.on('SIGINT', apagar);
 process.on('SIGTERM', apagar);

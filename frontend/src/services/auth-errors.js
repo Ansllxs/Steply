@@ -36,6 +36,7 @@ function translateMessage(mensaje) {
 }
 
 export function describeApiError(error) {
+  if (error?.codigo === 'CONFIG') return { fields: {}, form: 'auth.missingApi' }
   if (!(error instanceof ApiError) || error.codigo === 'RED' || error.status === 0) {
     return { fields: {}, form: 'auth.unavailable' }
   }

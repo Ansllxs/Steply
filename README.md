@@ -55,6 +55,8 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
+En desarrollo esas tres pueden quedar vacías. Las fotos se ven solo hasta que se reinicia el backend. Para conservarlas hay que crear una cuenta de Cloudinary y pegar aquí sus valores, o usar `CLOUDINARY_URL`. No invente credenciales. El archivo `frontend/.env` es opcional. Si existe, `VITE_API_BASE_URL` cambia la dirección del backend. Vacío, el desarrollo usa `http://localhost:3000`.
+
 Para generar el `JWT_SECRET` se puede correr esto y pegar el resultado.
 
 ```bash
@@ -96,6 +98,7 @@ La aplicación queda en `http://127.0.0.1:5173`. La API queda en `http://localho
 | `cd frontend && npm run dev` | Corre la aplicación |
 | `cd frontend && npm run lint` | Revisa el frontend |
 | `cd frontend && npm run build` | Genera la versión de producción del frontend |
+| `cd backend && npm test` | Revisa la configuración de producción, el límite de intentos y la URL del API |
 | `cd database && npm test` | Corre las pruebas de la base en `steply_test` |
 | `npm run db:migrate` | Aplica los cambios del esquema a la base |
 | `npm run db:seed` | Carga insignias y datos de prueba |
@@ -293,10 +296,13 @@ La colección está en `backend/postman/Steply.postman_collection.json`. Se impo
 
 ## Despliegue
 
-El backend y el paquete de la base se despliegan juntos desde la raíz del repositorio, porque el backend usa `@steply/database`.
+El código queda listo para configurarse. Este repositorio no crea cuentas, no compra servicios y no despliega nada por sí solo.
 
-1. Crear una base PostgreSQL gratuita (Neon, Supabase, Render o Railway) y copiar su `DATABASE_URL`. En Neon y Supabase se agrega `?sslmode=require` al final si no lo trae.
-2. Crear el servicio web en el hosting (por ejemplo Render o Railway) apuntando a este repositorio, con estos comandos.
+El backend y el paquete de la base se despliegan juntos desde la raíz, porque el backend usa `@steply/database`. El frontend se compila aparte y se publica como sitio estático. El hosting del frontend debe devolver `index.html` en las rutas de la aplicación, para que recargar `/habits` o `/groups` no falle.
+
+1. Crear una base PostgreSQL y copiar su `DATABASE_URL`. En Neon y Supabase se agrega `?sslmode=require` si la URL no lo trae.
+2. Crear una cuenta de Cloudinary y copiar el nombre de la nube, la API key y el API secret. También sirve `CLOUDINARY_URL`.
+3. Crear el servicio del backend apuntando a este repositorio.
 
 | Paso | Comando |
 |---|---|
@@ -304,21 +310,59 @@ El backend y el paquete de la base se despliegan juntos desde la raíz del repos
 | Migraciones | `npm run db:deploy` |
 | Arrancar | `npm start --workspace @steply/backend` |
 
-3. Poner las variables de entorno en el panel del hosting, nunca en el repositorio.
+`npm run db:deploy` aplica las migraciones pendientes y no borra datos. No use `db:reset` ni `db:seed` en la base real. El seed crea cuentas de prueba.
 
-| Variable | Valor |
-|---|---|
-| `DATABASE_URL` | La de la base del paso 1 |
-| `JWT_SECRET` | Una clave larga y aleatoria, distinta a la de desarrollo |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Las de la cuenta de Cloudinary. Sin ellas las fotos se guardan en memoria y se pierden al reiniciar el proceso. También se acepta `CLOUDINARY_URL` |
-| `NODE_ENV` | `production` |
+4. Compilar el frontend con la dirección pública del backend.
+
+```bash
+cd frontend
+VITE_API_BASE_URL=https://api.ejemplo.com npm run build
+```
+
+El resultado queda en `frontend/dist`. `VITE_API_URL` sigue funcionando con el mismo significado. Si el build de producción no tiene ninguna de las dos, la aplicación avisa que falta la dirección del servidor y no llama a `localhost`.
+
+5. Poner las variables en el panel del hosting, nunca en el repositorio.
+
+| Variable | Dónde | Valor |
+|---|---|---|
+| `DATABASE_URL` | Backend | URL de PostgreSQL |
+| `JWT_SECRET` | Backend | Clave propia de al menos 32 caracteres, distinta a la de desarrollo |
+| `NODE_ENV` | Backend | `production` |
+| `PORT` | Backend | La que asigne el hosting. Si no se define, usa 3000 |
+| `CORS_ORIGIN` | Backend | Origen público del frontend, por ejemplo `https://app.ejemplo.com`. Varios orígenes van separados por coma |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Backend | Credenciales de Cloudinary. También se acepta `CLOUDINARY_URL` |
+| `VITE_API_BASE_URL` | Frontend, al compilar | Dirección pública del backend, sin `/api` al final |
+
+En producción el servidor no arranca si falta la base, el secreto, el origen CORS o Cloudinary. Si las credenciales están incompletas, tampoco arranca. Una subida que el proveedor rechaza responde que la imagen no se guardó. El desarrollo, sin esas credenciales, sigue guardando las fotos en memoria solo mientras el proceso está encendido.
+
+`GET /api/salud` responde si el proceso vive y dice si el almacenamiento es `cloudinary`, `memoria` o `no-disponible`. `GET /api/salud-bd` comprueba PostgreSQL. Esas rutas no muestran secretos.
+
+Para apagar el proceso, el servidor espera a cerrar las conexiones al recibir SIGINT o SIGTERM.
+
+### Copia de seguridad
+
+La base de desarrollo vive en el volumen Docker `steply-datos`. `docker compose down` no lo borra. No ejecute `docker compose down -v` ni `npm run db:reset` si quiere conservar los datos.
+
+Una copia de la base se saca con `pg_dump` usando la `DATABASE_URL` correspondiente y se restaura con `pg_restore` o `psql` en una base vacía. Después se corren las migraciones con `npm run db:deploy` solo si esa copia todavía no las tiene. Las fotos permanentes viven en Cloudinary, no dentro de PostgreSQL: la base guarda la URL y el `public_id`. Una copia de la base sin la cuenta de Cloudinary no recupera los archivos.
+
+### Lista antes de publicar
+
+- `NODE_ENV=production` y un `JWT_SECRET` propio.
+- `CORS_ORIGIN` apunta al sitio real, no a `*`.
+- Cloudinary configurado y `GET /api/salud` muestra `cloudinary`.
+- El frontend se compiló con `VITE_API_BASE_URL`.
+- Las migraciones se aplicaron con `db:deploy`.
+- No se cargó el seed en la base pública.
+- Recargar una ruta interna abre la aplicación.
+- Subir una foto, reiniciar el backend y comprobar que la imagen sigue visible.
 
 ## Limitaciones conocidas
 
-- Sin credenciales de Cloudinary, la foto de perfil y la evidencia se pueden ver mientras el backend sigue encendido. Después de reiniciarlo, la referencia queda en PostgreSQL y la imagen ya no se puede mostrar. La interfaz oculta la imagen rota. No se guardan fotos en Base64.
+- Sin credenciales de Cloudinary, en desarrollo la foto de perfil y la evidencia se pueden ver mientras el backend sigue encendido. Después de reiniciarlo, la referencia queda en PostgreSQL y la imagen ya no se puede mostrar. La interfaz oculta la imagen rota. No se guardan fotos en Base64. Esta integración no se probó contra una cuenta real de Cloudinary porque no hay credenciales.
 - Los interruptores de notificaciones guardan una preferencia en el dispositivo. Steply no envía correos ni notificaciones push.
 - Cambiar la contraseña emite un token nuevo e invalida los anteriores. No hay correo de restablecimiento.
 - El correo de la cuenta se muestra en ajustes y no se puede cambiar desde la aplicación.
 - Los usuarios del seed solo existen después de `npm run db:seed`. La contraseña de esos usuarios es `Steply123!`.
+- El límite de intentos de registro e inicio de sesión vive en la memoria de cada proceso. Si hay varias copias del backend, cada una cuenta por separado.
 
-El hosting pone el `PORT` solo. Para cargar los datos de prueba en la base desplegada, una sola vez, se corre `npm run db:seed` con la `DATABASE_URL` de esa base.
+El hosting pone el `PORT` solo.

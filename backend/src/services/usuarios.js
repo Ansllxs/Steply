@@ -38,13 +38,19 @@ export async function cambiarFoto(usuario, archivo) {
     ? `${process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/api/medios?id=${encodeURIComponent(foto.publicId)}&origen=perfil`
     : foto.url;
 
-  const actualizado = await prisma.usuario.update({
-    where: { id: usuario.id },
-    data: { fotoUrl, fotoPublicId: foto.publicId },
-  });
+  let actualizado;
+  try {
+    actualizado = await prisma.usuario.update({
+      where: { id: usuario.id },
+      data: { fotoUrl, fotoPublicId: foto.publicId },
+    });
+  } catch (error) {
+    await almacenamientoPerfiles.eliminar(foto.publicId).catch(() => {});
+    throw error;
+  }
 
-  // Se borra la foto anterior. Si falla no importa, el perfil ya quedó con la nueva
-  if (usuario.fotoPublicId) {
+  // La foto anterior se borra solo después de guardar la nueva.
+  if (usuario.fotoPublicId && usuario.fotoPublicId !== foto.publicId) {
     almacenamientoPerfiles.eliminar(usuario.fotoPublicId).catch(() => {});
   }
   return limpiarUsuario(actualizado);

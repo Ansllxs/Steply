@@ -172,6 +172,26 @@ export default function CheckInPage() {
     setPreviewLoading(false)
   }
 
+  function selectChoice(next) {
+    setChoice(next)
+    setError('')
+    if (next !== 'yes') clearFile()
+  }
+
+  function moveChoice(event) {
+    if (!['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(event.key)) return
+    event.preventDefault()
+    const index = choices.findIndex((item) => item.id === choice)
+    const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight'
+    const start = index < 0 ? 0 : index
+    const nextIndex = forward
+      ? (start + (index < 0 ? 0 : 1)) % choices.length
+      : (start - 1 + choices.length) % choices.length
+    const next = choices[nextIndex].id
+    selectChoice(next)
+    event.currentTarget.querySelector(`[data-choice="${next}"]`)?.focus()
+  }
+
   function leaveToHabits() {
     window.clearTimeout(returnTimer.current)
     navigate('/habits', { replace: true })
@@ -271,12 +291,8 @@ export default function CheckInPage() {
   const finished = todayItem?.estadoHoy === 'COMPLETADO' || todayItem?.estadoHoy === 'PENDIENTE_APROBACION'
   const busy = submitting || saved
   const alreadyRecorded = todayItem?.registroId && !finished
-  const statusLabels = {
-    yes: 'check.selectedYes',
-    no: 'check.selectedNo',
-  }
-  const choiceStatus = error || (choice ? statusLabels[choice] : 'check.choose')
   const todayLabel = formatCalendarDate(calendarDate(user.zonaHoraria || 'America/Costa_Rica'), language)
+  const choiceMessage = error ? (error.startsWith('check.') ? t(error) : error) : ''
 
   return (
     <main className="sheet">
@@ -306,42 +322,41 @@ export default function CheckInPage() {
         ) : null}
         {!finished && !saved ? (
         <form className="check-form" onSubmit={handleSubmit} noValidate>
-          <div className="choice-group" role="group" aria-label={t('check.group')}>
+          <div className="choice-group" role="radiogroup" aria-label={t('check.group')} onKeyDown={moveChoice}>
             {choices.map((item) => {
               const selected = choice === item.id
-              const className = [
-                'choice',
-                item.id === 'yes' ? 'choice-yes' : 'choice-no',
-                selected ? 'is-selected' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
-
               return (
                 <button
                   key={item.id}
                   type="button"
-                  className={className}
-                  aria-pressed={selected}
+                  className={selected ? 'choice is-selected' : 'choice'}
+                  role="radio"
+                  data-choice={item.id}
+                  aria-checked={selected}
+                  tabIndex={choice ? (selected ? 0 : -1) : item.id === 'yes' ? 0 : -1}
                   disabled={busy || Boolean(blocked)}
-                  onClick={() => {
-                    setChoice(item.id)
-                    setError('')
-                  }}
+                  onClick={() => selectChoice(item.id)}
                 >
-                  {t(item.label)}
+                  <span>{t(item.label)}</span>
+                  <span className="choice-mark" aria-hidden="true">
+                    {selected ? (
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M3.75 9.25L7.1 12.6L14.25 5.4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : null}
+                  </span>
                 </button>
               )
             })}
-            <p
-              className={error ? 'choice-status is-alert' : 'choice-status'}
-              role={error ? 'alert' : undefined}
-            >
-              {error && !error.startsWith('check.') ? error : t(choiceStatus)}
-            </p>
+            {choiceMessage ? (
+              <p className="choice-status is-alert" role="alert">
+                {choiceMessage}
+              </p>
+            ) : null}
           </div>
           {blocked ? <p className="field-error" role="alert">{t(blocked)}</p> : null}
           {alreadyRecorded && !blocked ? <p className="dashboard-stats">{t('check.already')}</p> : null}
+          {choice === 'yes' ? (
           <div className="evidence-upload">
             <input
               id="evidence-file"
@@ -376,6 +391,7 @@ export default function CheckInPage() {
               </p>
             ) : null}
           </div>
+          ) : null}
           <div className="check-save">
             <Button type="submit" disabled={busy || Boolean(blocked)}>
               {submitting ? t('check.saving') : choice === 'yes' ? t('check.complete') : t('check.save')}

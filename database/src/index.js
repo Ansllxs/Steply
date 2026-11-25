@@ -21,4 +21,8 @@ export * as reglas from './logica/reglas.js';
 export { calcularRacha } from './logica/rachas.js';
 export * as fechas from './utils/fechas.js';
 
-export { crearAlmacenamientoCloudinary, crearAlmacenamientoMemoria } from './almacenamiento/cloudinary.js';
+export {
+  crearAlmacenamientoCloudinary,
+  crearAlmacenamientoMemoria,
+  crearAlmacenamientoNoDisponible,
+} from './almacenamiento/cloudinary.js';

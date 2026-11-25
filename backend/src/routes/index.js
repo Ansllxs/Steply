@@ -11,10 +11,18 @@ import rutasProgreso from './progreso.js';
 const router = Router();
 
 router.get('/salud', (req, res) => {
-  res.json({ ok: true, mensaje: 'Steply backend funcionando' });
+  res.json({
+    ok: true,
+    mensaje: 'Steply backend funcionando',
+    almacenamiento: almacenamientoEvidencias.nombre,
+  });
 });
 
 router.get('/medios', (req, res) => {
+  if (almacenamientoEvidencias.nombre !== 'memoria' && almacenamientoPerfiles.nombre !== 'memoria') {
+    res.status(404).json({ codigo: 'NO_ENCONTRADO', mensaje: 'La imagen no está disponible' });
+    return;
+  }
   const id = String(req.query.id || '');
   const origen = String(req.query.origen || '');
   const perfil = almacenamientoPerfiles.archivos?.get(id);

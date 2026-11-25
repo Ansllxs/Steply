@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import backIcon from '../assets/back.svg'
-import cameraIcon from '../assets/icon-camera.svg'
 import checkIcon from '../assets/icon-check.svg'
 import Button from '../components/Button'
 import LoadingIndicator from '../components/LoadingIndicator'
-import MediaImage from '../components/MediaImage'
 import TextField from '../components/TextField'
 import {
   calendarDate,
@@ -21,7 +19,6 @@ import {
   updateHabit,
   weekMarks,
 } from '../services/habits'
-import { displayMediaUrl } from '../services/media'
 import { useAuth } from '../state/useAuth'
 import { usePreferences } from '../state/usePreferences'
 
@@ -107,7 +104,6 @@ export default function HabitDetailPage() {
   const canManage = habit.creadorId === user.id || habit.creador?.id === user.id
   const today = calendarDate(user.zonaHoraria || 'America/Costa_Rica')
   const days = weekMarks(records, today)
-  const photos = records.flatMap((record) => record.evidencias ?? []).slice(0, 5)
   const scopeLabel = habit.tipo === 'GRUPAL'
     ? (habit.grupo?.nombre || t('habit.groupType'))
     : t('habit.personal')
@@ -213,16 +209,6 @@ export default function HabitDetailPage() {
             <p className="stat-label">{t('detail.points')}</p>
           </article>
         </div>
-        <h2 className="sheet-section sheet-section-evidence">{t('detail.evidence')}</h2>
-        <Link className="evidence-link" to={`/habits/${habit.id}/check-in`} state={location.state}>
-          <img src={cameraIcon} alt="" width="24" height="24" />
-          <span>{t('detail.photos')}</span>
-        </Link>
-        {photos.map((photo) => (
-          <figure className="evidence-preview" key={photo.id}>
-            <MediaImage src={displayMediaUrl(photo.url, photo.publicId)} />
-          </figure>
-        ))}
         {editing ? (
           <form className="create-habit-form" onSubmit={handleSave} noValidate>
             <TextField

@@ -61,6 +61,7 @@ export function isAllowedEvidence(file) {
 }
 
 export function habitErrorText(error, t) {
+  if (error?.codigo === 'CONFIG') return t('auth.missingApi')
   if (!(error instanceof ApiError) || error.codigo === 'RED' || error.status === 0) {
     return t('auth.unavailable')
   }

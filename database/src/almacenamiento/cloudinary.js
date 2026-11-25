@@ -16,6 +16,7 @@
 // o CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET.
 
 import { v2 as cloudinary } from 'cloudinary';
+import { noDisponible } from '../errores.js';
 
 export function crearAlmacenamientoCloudinary({
   cloudName = process.env.CLOUDINARY_CLOUD_NAME,
@@ -43,7 +44,10 @@ export function crearAlmacenamientoCloudinary({
         const flujo = cloudinary.uploader.upload_stream(
           { folder: carpeta, resource_type: 'image' },
           (error, r) => {
-            if (error) return reject(error);
+            if (error || !r?.secure_url || !r.public_id) {
+              console.error('No se pudo guardar la imagen en el almacenamiento permanente');
+              return reject(noDisponible('No se pudo guardar la imagen. Inténtalo de nuevo.'));
+            }
             resolve({
               url: r.secure_url,
               publicId: r.public_id,
@@ -92,14 +96,15 @@ export function crearAlmacenamientoCloudinary({
 }
 
 /** Almacenamiento en memoria para pruebas y desarrollo sin Cloudinary. */
-export function crearAlmacenamientoMemoria() {
+export function crearAlmacenamientoMemoria({ carpeta = 'steply/evidencias' } = {}) {
   const archivos = new Map();
   let contador = 0;
   return {
     nombre: 'memoria',
+    carpeta,
     archivos,
     async subir(buffer, { formato = 'jpg' } = {}) {
-      const publicId = `steply/evidencias/prueba-${Date.now()}-${++contador}-${Math.random().toString(36).slice(2, 8)}`;
+      const publicId = `${carpeta}/local-${Date.now()}-${++contador}-${Math.random().toString(36).slice(2, 8)}`;
       archivos.set(publicId, buffer);
       return {
         url: `https://res.cloudinary.com/demo/image/upload/${publicId}.${formato}`,
@@ -116,6 +121,22 @@ export function crearAlmacenamientoMemoria() {
     async eliminarVarios(ids) {
       ids.forEach((id) => archivos.delete(id));
     },
-    esUrlPropia: () => true,
+    esUrlPropia(url, publicId) {
+      return archivos.has(publicId) && typeof url === 'string' && url.includes(`/${publicId}.`);
+    },
+  };
+}
+
+/** Rechaza las subidas cuando la producción no tiene almacenamiento permanente. */
+export function crearAlmacenamientoNoDisponible() {
+  const fallo = () => noDisponible('El almacenamiento de fotos no está configurado. La imagen no se guardó.');
+  return {
+    nombre: 'no-disponible',
+    async subir() {
+      throw fallo();
+    },
+    async eliminar() {},
+    async eliminarVarios() {},
+    esUrlPropia: () => false,
   };
 }
